@@ -111,7 +111,7 @@ function App() {
       setLoading(true);
       setOutput('');
 
-      const response = await axios.post('http://ec2-3-95-200-236.compute-1.amazonaws.com/execute', {
+      const response = await axios.post('https://xengine.lijuu.me/execute', {
         code: btoa(code),
         language: language,
       });
