@@ -26,11 +26,12 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 function App() {
   const [code, setCode] = useState('');
   const [data, setData] = useState({});
-  const [language, setLanguage] = useState('js');
+  const [language, setLanguage] = useState("js");
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState('');
   const [files, setFiles] = useState(() => {
@@ -297,7 +298,10 @@ function App() {
                     key={lang.value}
                     value={lang.value}
                     onClick={() => setLanguage(lang.value)}
-                    className={`${language === lang.value ? 'bg-primary text-primary-foreground' : ''}`}
+                    className={cn(
+                      "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                      "hover:bg-muted/50"
+                    )}
                   >
                     <span className="mr-1">{lang.icon}</span> {lang.label}
                   </TabsTrigger>
@@ -326,9 +330,9 @@ function App() {
           </div>
         </CardHeader>
 
-        <div className="grid grid-cols-12 h-[calc(90vh-64px)]">
-          {/* File Explorer - 2 columns */}
-          <div className="col-span-2 border-r">
+        <div className="grid grid-cols-1 md:grid-cols-12 h-[calc(90vh-64px)]">
+          {/* File Explorer - hidden on mobile */}
+          <div className="col-span-1 md:col-span-2 border-r md:border-r-0 hidden md:block">
             <div className="p-2">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-sm font-medium">Files</h3>
@@ -390,8 +394,8 @@ function App() {
             </div>
           </div>
 
-          {/* Code Editor - 5 columns */}
-          <div className="col-span-5 h-full flex flex-col p-4">
+          {/* Code Editor - full width on mobile */}
+          <div className="col-span-1 md:col-span-5 h-full flex flex-col p-4">
             <div className="flex justify-between items-center mb-2">
               <div className="text-sm font-medium">
                 {currentFile ? (
@@ -452,8 +456,8 @@ function App() {
             </motion.div>
           </div>
 
-          {/* Output Panel - 5 columns */}
-          <div className="col-span-5 h-full bg-background/60">
+          {/* Output Panel - full width on mobile */}
+          <div className="col-span-1 md:col-span-5 h-full bg-background/60">
             <div className="p-4 h-full flex flex-col">
               <h2 className="text-sm font-medium mb-2">Output</h2>
               <ScrollArea className="flex-1 p-4 bg-muted rounded-md border">
@@ -538,18 +542,7 @@ function App() {
         </DialogContent>
       </Dialog>
 
-      {/* Add CSS styles for hover effects and transitions */}
-      <style>
-        {`
-          .hover\:bg-accent:hover {
-            background-color: rgba(255, 255, 255, 0.1); /* Example hover effect */
-            transition: background-color 0.3s ease;
-          }
-          .bg-muted {
-            background-color: rgba(0, 0, 0, 0.05); /* Example muted background */
-          }
-        `}
-      </style>
+
     </div>
   );
 }
