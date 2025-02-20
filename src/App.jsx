@@ -112,7 +112,7 @@ function App() {
       setLoading(true);
       setOutput('');
 
-      const response = await axios.post('http://localhost:8000/execute', {
+      const response = await axios.post('https://xengine.lijuu.me/execute', {
         code: btoa(code),
         language: language,
       });
