@@ -27,13 +27,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { Editor } from '@monaco-editor/react';
 
 function App() {
   const [code, setCode] = useState('');
   const [data, setData] = useState({});
-  const [language, setLanguage] = useState("js");
+  const [language, setLanguage] = useState('js');
   const [loading, setLoading] = useState(false);
-  const [output, setOutput] = useState('');
+  const [result, setResult] = useState('');
   const [files, setFiles] = useState(() => {
     const storedFiles = localStorage.getItem('xcode-files');
     return storedFiles ? JSON.parse(storedFiles) : [];
@@ -46,12 +47,28 @@ function App() {
 
   const previousFileRef = useRef(currentFile); // Ref to track previous currentFile
 
+  // Languages supported by the xengine
   const languages = [
     { value: 'js', label: 'JavaScript', icon: '📜' },
     { value: 'python', label: 'Python', icon: '🐍' },
     { value: 'go', label: 'Go', icon: '🔄' },
     { value: 'cpp', label: 'C++', icon: '⚙️' }
   ];
+
+  const getPlaceholder = () => {
+    switch (language) {
+      case 'js':
+        return "console.log('Hello, world!');";
+      case 'python':
+        return "print('Hello, world!')";
+      case 'go':
+        return 'package main\n\nimport "fmt"\n\nfunc main() {\n  fmt.Println("Hello, world!")\n}';
+      case 'cpp':
+        return '#include <iostream>\n\nint main() {\n  std::cout << "Hello, world!" << std::endl;\n  return 0;\n}';
+      default:
+        return "// Type your code here";
+    }
+  };
 
   // Load filesystem from localStorage on initial render
   useEffect(() => {
@@ -107,18 +124,31 @@ function App() {
     }
   }, [currentFile, files]);
 
+  // Handle request to the xengine
   const handleRequest = async () => {
     try {
       setLoading(true);
-      setOutput('');
+      setResult('');
 
       const response = await axios.post('https://xengine.lijuu.me/execute', {
         code: btoa(code),
         language: language,
       });
 
-      setData(response.data);
-      setOutput(JSON.stringify(response.data, null, 2));
+      // Set result based on response
+      if (response.data.error) {
+        setResult({
+          output: '',
+          status_message: response.data.error,
+          execution_time: response.data.execution_time,
+        });
+      } else {
+        setResult({
+          output: response.data.output,
+          status_message: 'Success',
+          execution_time: response.data.execution_time,
+        });
+      }
 
       // Automatically save the executed code
       if (currentFile) {
@@ -126,9 +156,17 @@ function App() {
       }
     } catch (error) {
       if (error.response) {
-        setOutput(`Error: ${error.response.data.output || error.response.data.error}`);
+        setResult({
+          output: '',
+          status_message: error.response.data.output || error.response.data.error,
+          execution_time: '',
+        });
       } else {
-        setOutput('Execution failed. Please check your code or try again later.');
+        setResult({
+          output: '',
+          status_message: 'Execution failed. Please check your code or try again later.',
+          execution_time: '',
+        });
       }
     } finally {
       setLoading(false);
@@ -140,9 +178,9 @@ function App() {
     const newId = Date.now().toString();
     const newFile = {
       id: newId,
-      name: `NewFile${files.length + 1}.${getFileExtension()}`,
+      name: `NewFile${files.length + 1}.${language}`,
       language: language,
-      content: getPlaceholder(),
+      content: getPlaceholder(language),
       createdAt: new Date().toISOString(),
       lastModified: new Date().toISOString()
     };
@@ -153,16 +191,6 @@ function App() {
 
     // Save to localStorage immediately
     localStorage.setItem('xcode-files', JSON.stringify([...files, newFile]));
-  };
-
-  const getFileExtension = () => {
-    switch (language) {
-      case 'js': return 'js';
-      case 'python': return 'py';
-      case 'go': return 'go';
-      case 'cpp': return 'cpp';
-      default: return 'txt';
-    }
   };
 
   const saveCurrentFile = () => {
@@ -180,13 +208,13 @@ function App() {
     localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
 
     // Show a save notification animation
-    const saveNotification = document.getElementById('save-notification');
-    if (saveNotification) {
-      saveNotification.classList.add('opacity-100');
-      setTimeout(() => {
-        saveNotification.classList.remove('opacity-100');
-      }, 1500);
-    }
+    // const saveNotification = document.getElementById('save-notification');
+    // if (saveNotification) {
+    //   saveNotification.classList.add('opacity-100');
+    //   setTimeout(() => {
+    //     saveNotification.classList.remove('opacity-100');
+    //   }, 1500);
+    // }
   };
 
   const deleteFile = (id) => {
@@ -203,7 +231,6 @@ function App() {
         setCode(updatedFiles[0].content);
         setLanguage(updatedFiles[0].language);
       } else {
-        // No files left
         setCurrentFile(null);
         setCode('');
       }
@@ -241,21 +268,6 @@ function App() {
     setNewFileName('');
   };
 
-  const getPlaceholder = () => {
-    switch (language) {
-      case 'js':
-        return "console.log('Hello, world!');";
-      case 'python':
-        return "print('Hello, world!')";
-      case 'go':
-        return 'package main\n\nimport "fmt"\n\nfunc main() {\n  fmt.Println("Hello, world!")\n}';
-      case 'cpp':
-        return '#include <iostream>\n\nint main() {\n  std::cout << "Hello, world!" << std::endl;\n  return 0;\n}';
-      default:
-        return "// Type your code here";
-    }
-  };
-
   const setCurrentFileFn = (id) => {
     if (currentFile) {
       const updatedFiles = files.map(file =>
@@ -279,8 +291,6 @@ function App() {
     }
   };
 
-  const containerRef = useRef(null);
-
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 p-4">
       <Card className="h-[90vh] max-w-full mx-auto shadow-lg overflow-hidden border">
@@ -291,23 +301,42 @@ function App() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Tabs>
-              <TabsList>
-                {languages.map((lang) => (
-                  <TabsTrigger
-                    key={lang.value}
-                    value={lang.value}
-                    onClick={() => setLanguage(lang.value)}
-                    className={cn(
-                      "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
-                      "hover:bg-muted/50"
-                    )}
-                  >
-                    <span className="mr-1">{lang.icon}</span> {lang.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+            <div className="hidden md:block">
+              <Tabs>
+                <TabsList>
+                  {languages.map((lang) => (
+                    <TabsTrigger
+                      key={lang.value}
+                      value={lang.value}
+                      onClick={() => setLanguage(lang.value)}
+                      className={cn(
+                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                        "hover:bg-muted/50"
+                      )}
+                    >
+                      <span className="mr-1">{lang.icon}</span> {lang.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <span className="mr-1">{languages.find(l => l.value === language)?.icon}</span>
+                    {languages.find(l => l.value === language)?.label}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {languages.map((lang) => (
+                    <DropdownMenuItem key={lang.value} onClick={() => setLanguage(lang.value)}>
+                      <span className="mr-1">{lang.icon}</span> {lang.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -354,7 +383,7 @@ function App() {
                       onClick={() => setCurrentFileFn(file.id)}
                     >
                       <div className="flex items-center overflow-hidden">
-                        <FolderIcon className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <FileIcon className="h-4 w-4 mr-2 flex-shrink-0" />
                         <span className="truncate">{file.name}</span>
                       </div>
                       <div className="flex space-x-1 opacity-0 group-hover:opacity-100">
@@ -441,11 +470,19 @@ function App() {
               transition={{ duration: 0.3 }}
               className="relative flex-1"
             >
-              <textarea
+              <Editor
+                height="100%"
+                language={language}
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(value) => setCode(value)}
                 placeholder={getPlaceholder()}
-                className="h-full w-full p-4 bg-muted/30 text-foreground font-mono text-sm rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-primary/50"
+                options={{
+                  theme: "vs-dark", // Use the user-specified theme
+                  automaticLayout: true,
+                  minimap: { enabled: false }, // Optional: Disable minimap for better focus
+                  fontSize: 14, // Optional: Set a specific font size
+                  lineNumbers: 'on', // Optional: Show line numbers
+                }}
               />
               <div
                 id="save-notification"
@@ -459,7 +496,23 @@ function App() {
           {/* Output Panel - full width on mobile */}
           <div className="col-span-1 md:col-span-5 h-full bg-background/60">
             <div className="p-4 h-full flex flex-col">
-              <h2 className="text-sm font-medium mb-2">Output</h2>
+              <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-2 bg-dark-100 rounded-md shadow-md">
+                <h2 className="text-base font-semibold mb-2 md:mb-0">Output</h2>
+                <div className="flex flex-row items-center">
+                  {result.execution_time && (
+                    <div className="bg-yellow-200 text-black px-3 py-1 rounded-md text-sm mr-2">
+                      Time: {result.execution_time}
+                    </div>
+                  )}
+                  <div className="flex justify-center items-center">
+                    {result.status_message === 'Success' ? (
+                      <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">Success</span>
+                    ) : result.status_message ? (
+                      <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">Error</span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
               <ScrollArea className="flex-1 p-4 bg-muted rounded-md border">
                 <AnimatePresence mode="wait">
                   {loading ? (
@@ -472,7 +525,7 @@ function App() {
                     >
                       <div className="text-muted-foreground">Running your code...</div>
                     </motion.div>
-                  ) : output ? (
+                  ) : (
                     <motion.pre
                       key="output"
                       initial={{ opacity: 0 }}
@@ -480,18 +533,8 @@ function App() {
                       transition={{ duration: 0.3 }}
                       className="text-sm font-mono whitespace-pre-wrap text-foreground"
                     >
-                      {output}
+                      <p>{result.output}</p>
                     </motion.pre>
-                  ) : (
-                    <motion.div
-                      key="empty"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-muted-foreground italic flex flex-col items-center justify-center h-full"
-                    >
-                      <CodeIcon className="h-12 w-12 mb-2 opacity-20" />
-                      <div>Run your code to see the output here</div>
-                    </motion.div>
                   )}
                 </AnimatePresence>
               </ScrollArea>
@@ -541,8 +584,6 @@ function App() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
     </div>
   );
 }
