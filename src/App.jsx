@@ -112,7 +112,7 @@ function App() {
       setLoading(true);
       setOutput('');
 
-      const response = await axios.post('https://xengine.lijuu.me/execute', {
+      const response = await axios.post('http://localhost:8000/execute', {
         code: btoa(code),
         language: language,
       });
@@ -126,7 +126,7 @@ function App() {
       }
     } catch (error) {
       if (error.response) {
-        setOutput(`Error: ${error.response.data.output || 'Unknown error'}`);
+        setOutput(`Error: ${error.response.data.output || error.response.data.error}`);
       } else {
         setOutput('Execution failed. Please check your code or try again later.');
       }
