@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "jsx": "react", // or "react-jsx" for React 17+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": "./src", // Optional: if you are using absolute imports
+    "paths": {
+      "@/*": ["*"] // Optional: if you are using absolute imports
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
