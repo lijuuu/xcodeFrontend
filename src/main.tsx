@@ -14,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <SidebarProvider>
           <AppSidebar />
+          {/* <SidebarTrigger /> */}
           <App />
         </SidebarProvider>
       </ThemeProvider>

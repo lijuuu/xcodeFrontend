@@ -122,7 +122,7 @@ function FileSystem() {
   };
 
   return (
-    <Sidebar >
+    <Sidebar variant="sidebar" collapsible="offcanvas">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-semibold">Files</SidebarGroupLabel>
@@ -130,38 +130,39 @@ function FileSystem() {
             <PlusIcon className="h-4 w-4" />
           </Button>
           <SidebarGroupContent>
-            <ScrollArea className="h-[calc(90vh-130px)]">
+            <ScrollArea >
               <AnimatePresence>
-                {files.map((file: File) => (
-                  <motion.div
-                    key={file.id}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -5 }}
-                    transition={{ duration: 0.2 }}
-                    className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-accent ${currentFile === file.id ? 'bg-muted' : ''}`}
-                    onClick={() => setCurrentFileFn(file.id)}
-                  >
-                    <div className="flex items-center overflow-hidden">
-                      <FileIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">{file.name}</span>
-                    </div>
-                    <div className="flex space-x-1 opacity-0 group-hover:opacity-100">
-                      <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); startRenameFile(file.id); }}>
-                        <Edit2Icon className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); deleteFile(file.id); }}>
-                        <TrashIcon className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))}
+                {files.length > 0 ? (
+                  files.map((file: File) => (
+                    <motion.div
+                      key={file.id}
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-accent ${currentFile === file.id ? 'bg-muted' : ''}`}
+                      onClick={() => setCurrentFileFn(file.id)}
+                    >
+                      <div className="flex items-center overflow-hidden">
+                        <FileIcon className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{file.name}</span>
+                      </div>
+                      <div className="flex space-x-1 opacity-0 group-hover:opacity-100">
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); startRenameFile(file.id); }}>
+                          <Edit2Icon className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); deleteFile(file.id); }}>
+                          <TrashIcon className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground text-center py-4 text-xs">
+                    No files yet. Create a new file to get started.
+                  </div>
+                )}
               </AnimatePresence>
-              {files.length === 0 && (
-                <div className="text-muted-foreground text-center py-4 text-xs">
-                  No files yet. Create a new file to get started.
-                </div>
-              )}
             </ScrollArea>
           </SidebarGroupContent>
         </SidebarGroup>

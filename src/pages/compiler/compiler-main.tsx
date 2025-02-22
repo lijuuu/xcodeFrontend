@@ -136,19 +136,16 @@ function App() {
             </DropdownMenu>
           </div>
         </CardHeader>
-        <SidebarTrigger className="hidden md:block" />
         <ResizablePanelGroup direction="horizontal" className="h-[calc(90vh-64px)] w-full">
           {/* File Explorer - Hidden on Mobile */}
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="hidden md:flex">
+          <ResizablePanel  >
             <FileSystem />
           </ResizablePanel>
           <ResizableHandle />
 
           {/* Code Editor - Takes Main Space */}
-          <ResizablePanel defaultSize={150} minSize={30} maxSize={70} className="flex items-center justify-center">
-            <div className="w-full h-full flex">
-              <CodeEditor className="w-full h-full" />
-            </div>
+          <ResizablePanel defaultSize={150} minSize={30} maxSize={70} >
+              <CodeEditor/>
           </ResizablePanel>
           <ResizableHandle />
 
