@@ -2,12 +2,12 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
-
-function Output() {
+import { cn } from '@/lib/utils';
+function Output({ className }: { className?: string }) {
   const { loading, result } = useSelector((state: any) => state.app);
 
   return (
-    <div className="col-span-1 md:col-span-4 h-[calc(80vh-64px)] bg-background/60">
+    <div className={cn("col-span-1 md:col-span-4 h-[calc(80vh-64px)] bg-background/60", className)}>
       <div className="p-4 h-full flex flex-col">
         <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-2 bg-dark-100 rounded-md shadow-md">
           <h2 className="text-base font-semibold mb-2 md:mb-0">Output</h2>

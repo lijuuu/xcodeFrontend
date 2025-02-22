@@ -72,14 +72,14 @@ function App() {
   }, [currentFile, files, dispatch]);
 
   return (
-    <div className="max-h-screen bg-background transition-colors duration-300 p-4 w-full">
-      <Card className="flex-1 max-w-full mx-auto shadow-lg overflow-hidden border">
-        <CardHeader className="bg-muted p-4 flex flex-row justify-between items-center">
+    <div className="max-h-screen bg-background transition-colors duration-300 p-2 w-full overflow-hidden">
+      <Card className="flex-1 w-full shadow-lg border">
+        <CardHeader className="bg-muted p-2 flex flex-row justify-between items-center">
           <div className="flex items-center space-x-2">
             <CodeIcon className="h-5 w-5" />
-            <CardTitle className="text-2xl font-bold"> xcode <span className="text-xs text-muted-foreground">beta----need to fix ui issues, u can resize the codeditor and output panel by dragging the edge</span></CardTitle>
+            <CardTitle className="text-xl font-bold"> xcode <span className="text-xs text-muted-foreground"> -- building a better compiler</span></CardTitle>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <div className="hidden md:block">
               <Tabs>
                 <TabsList>
@@ -136,21 +136,23 @@ function App() {
             </DropdownMenu>
           </div>
         </CardHeader>
-        <ResizablePanelGroup direction="horizontal" className="h-[calc(90vh-64px)] w-full">
+        <SidebarTrigger/>
+        <ResizablePanelGroup direction="horizontal" className="h-[calc(90vh-64px)]">
           {/* File Explorer - Hidden on Mobile */}
-          <ResizablePanel  >
+          <ResizablePanel defaultSize={0} minSize={0} maxSize={0} className="hidden md:flex">
             <FileSystem />
           </ResizablePanel>
           <ResizableHandle />
 
           {/* Code Editor - Takes Main Space */}
-          <ResizablePanel defaultSize={150} minSize={30} maxSize={70} >
-              <CodeEditor/>
+          <ResizablePanel defaultSize={55} minSize={50} maxSize={Infinity} className="flex-grow">
+            <CodeEditor />
           </ResizablePanel>
+
           <ResizableHandle />
 
           {/* Output Panel */}
-          <ResizablePanel defaultSize={60} minSize={15} maxSize={40}>
+          <ResizablePanel defaultSize={30} minSize={30} maxSize={60} >
             <Output />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -160,5 +162,5 @@ function App() {
   );
 }
 
-export type { File,Response };
+export type { File, Response };
 export default App;

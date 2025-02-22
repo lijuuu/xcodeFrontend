@@ -122,15 +122,16 @@ function FileSystem() {
   };
 
   return (
-    <Sidebar variant="sidebar" collapsible="offcanvas">
+    <Sidebar variant="sidebar" collapsible="offcanvas" className="bg-gray-900 text-white">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-semibold">Files</SidebarGroupLabel>
-          <Button variant="ghost" size="icon" onClick={createNewFile}>
+          <span className="text-sm text-gray-400 mb-2 ml-2">Control + B to toggle</span>
+          <Button variant="ghost" size="icon" onClick={createNewFile} className="hover:bg-gray-700">
             <PlusIcon className="h-4 w-4" />
           </Button>
           <SidebarGroupContent>
-            <ScrollArea >
+            <ScrollArea className="h-[calc(90vh-130px)]">
               <AnimatePresence>
                 {files.length > 0 ? (
                   files.map((file: File) => (
@@ -140,7 +141,7 @@ function FileSystem() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -5 }}
                       transition={{ duration: 0.2 }}
-                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-accent ${currentFile === file.id ? 'bg-muted' : ''}`}
+                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-gray-700 ${currentFile === file.id ? 'bg-gray-600' : ''}`}
                       onClick={() => setCurrentFileFn(file.id)}
                     >
                       <div className="flex items-center overflow-hidden">
@@ -148,17 +149,17 @@ function FileSystem() {
                         <span className="truncate">{file.name}</span>
                       </div>
                       <div className="flex space-x-1 opacity-0 group-hover:opacity-100">
-                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); startRenameFile(file.id); }}>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-gray-700" onClick={(e) => { e.stopPropagation(); startRenameFile(file.id); }}>
                           <Edit2Icon className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); deleteFile(file.id); }}>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-gray-700" onClick={(e) => { e.stopPropagation(); deleteFile(file.id); }}>
                           <TrashIcon className="h-3 w-3" />
                         </Button>
                       </div>
                     </motion.div>
                   ))
                 ) : (
-                  <div className="text-muted-foreground text-center py-4 text-xs">
+                  <div className="text-gray-400 text-center py-4 text-xs">
                     No files yet. Create a new file to get started.
                   </div>
                 )}
@@ -170,7 +171,7 @@ function FileSystem() {
 
       {/* Rename Dialog */}
       <Dialog open={isRenaming} onOpenChange={(open) => !open && dispatch(setRenaming(false))}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-gray-800 text-white">
           <DialogHeader>
             <DialogTitle>Rename File</DialogTitle>
           </DialogHeader>
@@ -179,16 +180,16 @@ function FileSystem() {
               value={newFileName}
               onChange={(e) => dispatch(setNewFileName(e.target.value))}
               placeholder="Enter new filename"
-              className="w-full"
+              className="w-full bg-gray-700 text-white placeholder-gray-400"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && completeRename()}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => dispatch(setRenaming(false))}>
+            <Button variant="outline" onClick={() => dispatch(setRenaming(false))} className="border-gray-600 text-gray-400 hover:bg-gray-700">
               Cancel
             </Button>
-            <Button onClick={completeRename}>
+            <Button onClick={completeRename} className="bg-gray-600 hover:bg-gray-500">
               Rename
             </Button>
           </DialogFooter>

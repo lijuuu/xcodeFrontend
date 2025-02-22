@@ -24,7 +24,7 @@ function CodeEditor({ className }: { className?: string }) {
   };
 
   return (
-    <div className={cn("col-span-1 md:col-span-7 w-full h-full flex flex-col p-1", className)}>
+    <div className={cn("col-span-1 md:col-span-7 w-full h-full flex flex-col p-4", className)}>
       <div className="flex justify-between items-center mb-">
         <div className="text-sm font-medium">
           {currentFile ? files.find((f: File) => f.id === currentFile)?.name || 'Editor' : 'Editor'}
@@ -40,7 +40,7 @@ function CodeEditor({ className }: { className?: string }) {
           </Button>
         </div>
       </div>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="relative flex-1">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className=" flex-1">
         <Editor
           height="100%"
           language={language}
