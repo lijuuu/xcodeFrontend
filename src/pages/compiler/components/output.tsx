@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
@@ -77,6 +77,7 @@ function Output({ className }: { className?: string }) {
               </motion.div>
             ) : null}
           </AnimatePresence>
+          <ScrollBar className='w-2 blue-500' orientation="vertical" />
         </ScrollArea>
       </div>
     </div>

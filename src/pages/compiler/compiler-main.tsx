@@ -73,28 +73,32 @@ function CompilerMain() {
     }
   }, [currentFile, files, dispatch]);
 
-  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
-
   useEffect(() => {
     if (files.length > 0 && currentFile === null) {
       const firstFile = files[0];
-      dispatch(setCode(firstFile.content)); 
-      dispatch(setCurrentFile(firstFile.id)); 
-      dispatch(setLanguage(firstFile.language)); 
+      dispatch(setCode(firstFile.content));
+      dispatch(setCurrentFile(firstFile.id));
+      dispatch(setLanguage(firstFile.language));
     }
   }, []);
+
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
+
+    handleResize();
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+
   return (
     <div className=" bg-background transition-colors duration-300 p-2 w-full h-full ">
-      <Card className="flex-1 w-full shadow-lg ">
+      <Card className="rounded-none flex-1 w-full shadow-lg ">
         <CardHeader className="bg-muted p-2 flex flex-row justify-between items-center">
           <div className="flex items-center space-x-2">
             <CodeIcon className="h-5 w-5" />
@@ -160,28 +164,26 @@ function CompilerMain() {
         </CardHeader>
       </Card>
       {/* Dynamically change ResizablePanelGroup layout */}
-      <ResizablePanelGroup
-        direction={isMobile ? "vertical" : "horizontal"}
-        className="flex flex-col md:flex-row h-[calc(90vh-64px)]"
-      >
+      <div className="flex flex-col md:flex-row h-[calc(95vh-64px)] ">
         {/* Sidebar / File Explorer */}
-        <div className="flex items-center justify-center border-none">
+        {!isMobile && <div className="flex items-center justify-center border-none">
           <SidebarTrigger className="w-full h-full pl-3 pr-3 rounded-none" />
-          <ResizableHandle className="flex items-center justify-center hidden border-none" />
-        </div>
+        </div>}
 
-        {/* Code Editor */}
-        <ResizablePanel defaultSize={isMobile ? 70 : 55} minSize={50} maxSize={Infinity} className="flex-grow">
-          <CodeEditor />
-        </ResizablePanel>
+        <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"}>
+          {/* Code Editor */}
+          <ResizablePanel defaultSize={isMobile ? 90 : 55} minSize={30} maxSize={80} className="flex-grow">
+            <CodeEditor className="h-full " />
+          </ResizablePanel>
 
-        <ResizableHandle />
+          <ResizableHandle className="w-0.5 h-full bg-red-500" />
 
-        {/* Output Panel moves down on mobile */}
-        <ResizablePanel defaultSize={isMobile ? 30 : 30} minSize={30} maxSize={60}>
-          <Output />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          {/* Output Panel moves down on mobile */}
+          <ResizablePanel defaultSize={isMobile ? 0 : 30} minSize={isMobile ? 0 : 25} maxSize={80} className=" h-full md:w-[calc(30%)]">
+            <Output className="h-full md:h-[calc(90vh-64px)]" />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
     </div>
   );
 }

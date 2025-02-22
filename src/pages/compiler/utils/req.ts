@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { setLoading, setResult, setFiles } from '@/pages/compiler/redux/actions';
 import { Response } from '@/pages/compiler/compiler-main';
-import { languages } from '@/pages/compiler/compiler-main';
 
 export const handleRequest = async (dispatch: any, code: string, reqLang: string) => {
   dispatch(setLoading(true));
