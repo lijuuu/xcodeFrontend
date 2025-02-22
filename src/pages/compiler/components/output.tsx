@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 function Output({ className }: { className?: string }) {
   const { loading, result } = useSelector((state: any) => state.app);
 
@@ -34,9 +35,13 @@ function Output({ className }: { className?: string }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex justify-center items-center h-full"
+                className="flex items-start h-full"
               >
-                <div className="text-muted-foreground">Running your code...</div>
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="w-[150px] h-[20px] mb-2 rounded-full" />
+                  <Skeleton className="w-[100px] h-[20px] mb-2 rounded-full" />
+                  <Skeleton className="w-[170px] h-[20px] rounded-full" />
+                </div>
               </motion.div>
             ) : result.success ? (
               result.output ? (
@@ -60,7 +65,7 @@ function Output({ className }: { className?: string }) {
                   <p>No output available.</p>
                 </motion.div>
               )
-            ) : (
+            ) : result.error ? (
               <motion.div
                 key="error"
                 initial={{ opacity: 0 }}
@@ -70,7 +75,7 @@ function Output({ className }: { className?: string }) {
               >
                 <p>{result.output || 'An error occurred.'}</p>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </ScrollArea>
       </div>

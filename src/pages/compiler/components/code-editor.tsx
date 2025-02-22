@@ -9,6 +9,7 @@ import { handleRequest, saveCurrentFile } from '@/pages/compiler/utils/req';
 import { setCode } from '@/pages/compiler/redux/actions';
 import { useTheme } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
+import { languages } from '@/pages/compiler/compiler-main';
 
 function CodeEditor({ className }: { className?: string }) {
   const { theme } = useTheme();
@@ -16,7 +17,7 @@ function CodeEditor({ className }: { className?: string }) {
   const { code, language, files, currentFile } = useSelector((state: any) => state.app);
 
   const handleRun = () => {
-    handleRequest(dispatch, code, language);
+    handleRequest(dispatch, code, languages.find((lang) => lang.value === language)?.req || '');
   };
 
   const handleSave = () => {
@@ -25,11 +26,11 @@ function CodeEditor({ className }: { className?: string }) {
 
   return (
     <div className={cn("col-span-1 md:col-span-7 w-full h-full flex flex-col p-4", className)}>
-      <div className="flex justify-between items-center mb-">
+      <div className="flex justify-between items-center">
         <div className="text-sm font-medium">
           {currentFile ? files.find((f: File) => f.id === currentFile)?.name || 'Editor' : 'Editor'}
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 mb-2">
           <Button variant="outline" size="sm" onClick={handleSave} disabled={!currentFile}>
             <SaveIcon className="h-3.5 w-3.5 mr-1" />
             Save
@@ -40,14 +41,15 @@ function CodeEditor({ className }: { className?: string }) {
           </Button>
         </div>
       </div>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className=" flex-1">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex-1">
         <Editor
+          className='w-full h-full bg-black'
           height="100%"
           language={language}
           value={code}
           onChange={(value) => dispatch(setCode(value || ''))}
           options={{
-            theme: theme === 'dark' ? 'vs-dark' : 'vs',
+            theme: theme === 'dark' ? 'vs-dark' : 'light',
             automaticLayout: true,
             minimap: { enabled: true },
             fontSize: 14,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,11 +7,11 @@ import { SettingsIcon, CodeIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode, setLanguage } from '@/pages/compiler/redux/actions';
+import { setCode, setCurrentFile, setFile, setFiles, setLanguage } from '@/pages/compiler/redux/actions';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Output from '@/pages/compiler/components/output';
 import CodeEditor from '@/pages/compiler/components/code-editor';
-import FileSystem from '@/pages/compiler/components/file-system';
+
 import {
   ResizablePanel,
   ResizablePanelGroup,
@@ -35,7 +35,15 @@ interface Response {
   execution_time?: number;
 }
 
-function App() {
+
+export const languages = [
+  { value: 'javascript', file: 'js', req: 'js', label: 'JavaScript', icon: '📜' },
+  { value: 'python', file: 'py', req: 'python', label: 'Python', icon: '🐍' },
+  { value: 'go', file: 'go', req: 'go', label: 'Go', icon: '🔄' },
+  { value: 'cpp', file: 'cpp', req: 'cpp', label: 'C++', icon: '⚙️' }
+];
+
+function CompilerMain() {
   const dispatch = useDispatch();
   const { language, files, currentFile } = useSelector((state: any) => state.app);
   const { setTheme } = useTheme();
@@ -47,13 +55,7 @@ function App() {
     filesRef.current = files;
   }, [files]);
 
-  // Languages supported by the xengine
-  const languages = [
-    { value: 'js', file: 'js', label: 'JavaScript', icon: '📜' },
-    { value: 'python', file: 'py', label: 'Python', icon: '🐍' },
-    { value: 'go', file: 'go', label: 'Go', icon: '🔄' },
-    { value: 'cpp', file: 'cpp', label: 'C++', icon: '⚙️' }
-  ];
+
 
   // Load file content when changing files
   useEffect(() => {
@@ -65,15 +67,34 @@ function App() {
       } else {
         // Reset to default if file is not found
         dispatch(setCode(''));
-        dispatch(setLanguage('js'));
+        dispatch(setLanguage('javascript'));
       }
-      previousFileRef.current = currentFile; // Update the ref to the current file
+      previousFileRef.current = currentFile;
     }
   }, [currentFile, files, dispatch]);
 
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
+
+  useEffect(() => {
+    if (files.length > 0 && currentFile === null) {
+      const firstFile = files[0];
+      dispatch(setCode(firstFile.content)); 
+      dispatch(setCurrentFile(firstFile.id)); 
+      dispatch(setLanguage(firstFile.language)); 
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className="max-h-screen bg-background transition-colors duration-300 p-2 w-full overflow-hidden">
-      <Card className="flex-1 w-full shadow-lg border">
+    <div className=" bg-background transition-colors duration-300 p-2 w-full h-full ">
+      <Card className="flex-1 w-full shadow-lg ">
         <CardHeader className="bg-muted p-2 flex flex-row justify-between items-center">
           <div className="flex items-center space-x-2">
             <CodeIcon className="h-5 w-5" />
@@ -87,10 +108,14 @@ function App() {
                     <TabsTrigger
                       key={lang.value}
                       value={lang.value}
-                      onClick={() => dispatch(setLanguage(lang.value))}
+                      onClick={() => {
+                        dispatch(setLanguage(lang.value))
+                        dispatch(setFile(lang.file))
+                      }}
                       className={cn(
                         "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
-                        "hover:bg-muted/50"
+                        "hover:bg-muted/50",
+                        { 'bg-primary text-primary-foreground': lang.value === language } // Set active state based on current language
                       )}
                     >
                       <span className="mr-1">{lang.icon}</span> {lang.label}
@@ -129,38 +154,37 @@ function App() {
                 <DropdownMenuItem onClick={() => setTheme("dark")}>
                   Dark
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
-                  System
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </CardHeader>
-        <SidebarTrigger/>
-        <ResizablePanelGroup direction="horizontal" className="h-[calc(90vh-64px)]">
-          {/* File Explorer - Hidden on Mobile */}
-          <ResizablePanel defaultSize={0} minSize={0} maxSize={0} className="hidden md:flex">
-            <FileSystem />
-          </ResizablePanel>
-          <ResizableHandle />
-
-          {/* Code Editor - Takes Main Space */}
-          <ResizablePanel defaultSize={55} minSize={50} maxSize={Infinity} className="flex-grow">
-            <CodeEditor />
-          </ResizablePanel>
-
-          <ResizableHandle />
-
-          {/* Output Panel */}
-          <ResizablePanel defaultSize={30} minSize={30} maxSize={60} >
-            <Output />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-
       </Card>
+      {/* Dynamically change ResizablePanelGroup layout */}
+      <ResizablePanelGroup
+        direction={isMobile ? "vertical" : "horizontal"}
+        className="flex flex-col md:flex-row h-[calc(90vh-64px)]"
+      >
+        {/* Sidebar / File Explorer */}
+        <div className="flex items-center justify-center border-none">
+          <SidebarTrigger className="w-full h-full pl-3 pr-3 rounded-none" />
+          <ResizableHandle className="flex items-center justify-center hidden border-none" />
+        </div>
+
+        {/* Code Editor */}
+        <ResizablePanel defaultSize={isMobile ? 70 : 55} minSize={50} maxSize={Infinity} className="flex-grow">
+          <CodeEditor />
+        </ResizablePanel>
+
+        <ResizableHandle />
+
+        {/* Output Panel moves down on mobile */}
+        <ResizablePanel defaultSize={isMobile ? 30 : 30} minSize={30} maxSize={60}>
+          <Output />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
 
 export type { File, Response };
-export default App;
+export default CompilerMain;

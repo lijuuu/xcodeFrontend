@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode, setFiles, setCurrentFile, setRenaming, setNewFileName } from '@/pages/compiler/redux/actions';
+import { setCode, setFiles, setCurrentFile, setNewFileName } from '@/pages/compiler/redux/actions';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { File } from '@/pages/compiler/compiler-main';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -12,7 +12,12 @@ import { Input } from "@/components/ui/input";
 
 function FileSystem() {
   const dispatch = useDispatch();
-  const { files, currentFile, newFileName, isRenaming } = useSelector((state: any) => state.app);
+  const { language, file, files, currentFile } = useSelector((state: any) => state.app);
+
+  const [nameError, setNameError] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Load filesystem from localStorage on initial render
   useEffect(() => {
@@ -43,9 +48,9 @@ function FileSystem() {
     const newId = Date.now().toString();
     const newFile = {
       id: newId,
-      name: `NewFile${files.length + 1}.js`, // Default to JavaScript
-      language: 'js',
-      content: getPlaceholder('js'),
+      name: `NewFile${files.length + 1}.${file}`, // Default to JavaScript
+      language: language,
+      content: getPlaceholder(language),
       createdAt: new Date().toISOString(),
       lastModified: new Date().toISOString()
     };
@@ -91,15 +96,17 @@ function FileSystem() {
   const startRenameFile = (id: string) => {
     const file = files.find((f: File) => f.id === id);
     if (file) {
-      dispatch(setNewFileName(file.name));
-      dispatch(setRenaming(true));
+      setNewFileName(file.name);
+      setIsRenaming(true);
     }
   };
 
   const completeRename = () => {
     if (!newFileName.trim() || !currentFile) {
-      dispatch(setRenaming(false));
-      return;
+      if (newFileName.trim() === '') {
+        setNameError('File name cannot be empty');
+        return;
+      }
     }
 
     const updatedFiles = files.map((file: File) =>
@@ -110,7 +117,7 @@ function FileSystem() {
 
     dispatch(setFiles(updatedFiles));
     localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
-    dispatch(setRenaming(false));
+    setIsRenaming(false);
   };
 
   const setCurrentFileFn = (id: string) => {
@@ -121,17 +128,29 @@ function FileSystem() {
     }
   };
 
+  const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNewFileName(value);
+
+    // Check the length in real-time
+    if (value.length > 15) {
+      setErrorMessage('File name cannot be longer than 15 characters');
+    } else {
+      setErrorMessage(''); // Clear error message if valid
+    }
+  };
+
   return (
-    <Sidebar variant="sidebar" collapsible="offcanvas" className="bg-gray-900 text-white">
-      <SidebarContent>
+    <Sidebar variant="sidebar" collapsible="offcanvas" className="bg-gray-900 text-white ">
+      <SidebarContent >
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-semibold">Files</SidebarGroupLabel>
-          <span className="text-sm text-gray-400 mb-2 ml-2">Control + B to toggle</span>
+          <span className="text-xs text-gray-400 mb-2 ml-2">Ctrl+B to Hide/Unhide</span>
           <Button variant="ghost" size="icon" onClick={createNewFile} className="hover:bg-gray-700">
             <PlusIcon className="h-4 w-4" />
           </Button>
           <SidebarGroupContent>
-            <ScrollArea className="h-[calc(90vh-130px)]">
+            <ScrollArea className="h-[calc(90vh-130px)] overflow-x-hidden overflow-y-auto">
               <AnimatePresence>
                 {files.length > 0 ? (
                   files.map((file: File) => (
@@ -144,9 +163,9 @@ function FileSystem() {
                       className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-gray-700 ${currentFile === file.id ? 'bg-gray-600' : ''}`}
                       onClick={() => setCurrentFileFn(file.id)}
                     >
-                      <div className="flex items-center overflow-hidden">
-                        <FileIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">{file.name}</span>
+                      <div className="flex items-center">
+                        <FileIcon className="h-4 w-4 mr-2 " />
+                        <span className=" text-xs w-12">{file.name}</span>
                       </div>
                       <div className="flex space-x-1 opacity-0 group-hover:opacity-100">
                         <Button variant="ghost" size="icon" className="h-5 w-5 hover:bg-gray-700" onClick={(e) => { e.stopPropagation(); startRenameFile(file.id); }}>
@@ -170,7 +189,7 @@ function FileSystem() {
       </SidebarContent>
 
       {/* Rename Dialog */}
-      <Dialog open={isRenaming} onOpenChange={(open) => !open && dispatch(setRenaming(false))}>
+      <Dialog open={isRenaming} onOpenChange={(open) => !open && setIsRenaming(false)}>
         <DialogContent className="sm:max-w-md bg-gray-800 text-white">
           <DialogHeader>
             <DialogTitle>Rename File</DialogTitle>
@@ -178,15 +197,16 @@ function FileSystem() {
           <div className="py-4">
             <Input
               value={newFileName}
-              onChange={(e) => dispatch(setNewFileName(e.target.value))}
+              onChange={handleFileNameChange}
               placeholder="Enter new filename"
               className="w-full bg-gray-700 text-white placeholder-gray-400"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && completeRename()}
             />
           </div>
+          {errorMessage && <div className="text-red-500 text-sm">{errorMessage}</div>}
           <DialogFooter>
-            <Button variant="outline" onClick={() => dispatch(setRenaming(false))} className="border-gray-600 text-gray-400 hover:bg-gray-700">
+            <Button variant="outline" onClick={() => setIsRenaming(false)} className="border-gray-600 text-gray-400 hover:bg-gray-700">
               Cancel
             </Button>
             <Button onClick={completeRename} className="bg-gray-600 hover:bg-gray-500">

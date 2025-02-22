@@ -1,15 +1,22 @@
 import axios from 'axios';
 import { setLoading, setResult, setFiles } from '@/pages/compiler/redux/actions';
 import { Response } from '@/pages/compiler/compiler-main';
+import { languages } from '@/pages/compiler/compiler-main';
 
-export const handleRequest = async (dispatch: any, code: string, language: string) => {
+export const handleRequest = async (dispatch: any, code: string, reqLang: string) => {
   dispatch(setLoading(true));
   dispatch(setResult({ output: '', status_message: '', success: false }));
+
+
+  if (reqLang == "") {
+    console.log("No language selected");
+    return;
+  }
 
   try {
     const response = await axios.post('https://xengine.lijuu.me/execute', {
       code: btoa(code),
-      language: language,
+      language: reqLang,
     }, {
       headers: {
         'Content-Type': 'application/json',

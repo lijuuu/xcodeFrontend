@@ -6,6 +6,7 @@ import {
   SET_LOADING,
   SET_RESULT,
   SET_FILES,
+  SET_FILE,
   SET_CURRENT_FILE,
   SET_RENAMING,
   SET_NEW_FILE_NAME,
@@ -14,8 +15,9 @@ import {
 
 const initialState = {
   code: '',
-  language: 'js',
+  language: 'javascript',
   loading: false,
+  file: 'js',
   result: {},
   files: [],
   currentFile: null,
@@ -36,6 +38,8 @@ const appReducer = (state = initialState, action: any) => {
       return { ...state, result: action.payload };
     case SET_FILES:
       return { ...state, files: action.payload };
+    case SET_FILE:
+      return { ...state, file: action.payload };
     case SET_CURRENT_FILE:
       return { ...state, currentFile: action.payload };
     case SET_RENAMING:
