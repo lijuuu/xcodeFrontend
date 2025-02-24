@@ -13,7 +13,7 @@ export const handleRequest = async (dispatch: any, code: string, reqLang: string
   }
 
   try {
-    const response = await axios.post('https://xengine.lijuu.me/execute', {
+    const response = await axios.post('http://localhost:8000/execute', {
       code: btoa(code),
       language: reqLang,
     }, {
