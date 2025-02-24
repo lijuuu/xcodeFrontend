@@ -7,10 +7,10 @@ import { SettingsIcon, CodeIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode, setCurrentFile, setFile, setFiles, setLanguage } from '@/pages/compiler/redux/actions';
+import { setCode, setCurrentFile, setFile, setFiles, setLanguage } from '@/pages/Compiler/redux/actions';
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import Output from '@/pages/compiler/components/output';
-import CodeEditor from '@/pages/compiler/components/code-editor';
+import Output from '@/pages/Compiler/components/output';
+import CodeEditor from '@/pages/Compiler/components/code-editor';
 
 import {
   ResizablePanel,

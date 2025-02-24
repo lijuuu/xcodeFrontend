@@ -11,7 +11,7 @@ import {
   SET_RENAMING,
   SET_NEW_FILE_NAME,
   SET_FILE_TO_RENAME,
-} from '@/pages/compiler/redux/actions';
+} from '@/pages/Compiler/redux/actions';
 
 const initialState = {
   code: '',

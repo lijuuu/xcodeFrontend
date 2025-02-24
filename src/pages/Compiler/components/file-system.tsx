@@ -4,9 +4,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode, setFiles, setCurrentFile, setNewFileName } from '@/pages/compiler/redux/actions';
+import { setCode, setFiles, setCurrentFile, setNewFileName } from '@/pages/Compiler/redux/actions';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel } from "@/components/ui/sidebar";
-import { File } from '@/pages/compiler/compiler-main';
+import { File } from '@/pages/Compiler/compiler-main';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 

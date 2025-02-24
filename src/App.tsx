@@ -1,7 +1,7 @@
 import React from "react";
-import CompilerMain from "./pages/compiler/compiler-main";
+import CompilerMain from "./pages/Compiler/compiler-main";
 import { SidebarProvider } from "./components/ui/sidebar";
-import FileSystem from "./pages/compiler/components/file-system";
+import FileSystem from "./pages/Compiler/components/file-system";
 
 function App() {
   return (

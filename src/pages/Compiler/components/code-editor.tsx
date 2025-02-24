@@ -1,15 +1,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { File } from '@/pages/compiler/compiler-main';
+import { File } from '@/pages/Compiler/compiler-main';
 import { SaveIcon, PlayIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Editor } from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { handleRequest, saveCurrentFile } from '@/pages/compiler/utils/req';
-import { setCode } from '@/pages/compiler/redux/actions';
+import { handleRequest, saveCurrentFile } from '@/pages/Compiler/utils/req';
+import { setCode } from '@/pages/Compiler/redux/actions';
 import { useTheme } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
-import { languages } from '@/pages/compiler/compiler-main';
+import { languages } from '@/pages/Compiler/compiler-main';
 
 function CodeEditor({ className }: { className?: string }) {
   const { theme } = useTheme();

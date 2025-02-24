@@ -1,4 +1,4 @@
-import { File } from '@/pages/compiler/compiler-main';
+import { File } from '@/pages/Compiler/compiler-main';
 
 // src/actions.ts
 export const SET_CODE = 'SET_CODE';
