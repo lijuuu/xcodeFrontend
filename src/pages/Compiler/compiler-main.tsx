@@ -7,7 +7,7 @@ import { SettingsIcon, CodeIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode, setCurrentFile, setFile, setFiles, setLanguage } from '@/pages/Compiler/redux/actions';
+import { setCode, setCurrentFile, setFile, setLanguage } from '@/pages/Compiler/redux/slice';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Output from '@/pages/Compiler/components/output';
 import CodeEditor from '@/pages/Compiler/components/code-editor';
@@ -45,7 +45,7 @@ export const languages = [
 
 function CompilerMain() {
   const dispatch = useDispatch();
-  const { language, files, currentFile } = useSelector((state: any) => state.app);
+  const { language, files, currentFile } = useSelector((state: any) => state.xCode);
   const { setTheme } = useTheme();
   const previousFileRef = useRef<string | null>(currentFile);
   const filesRef = useRef(files);
@@ -67,7 +67,7 @@ function CompilerMain() {
       } else {
         // Reset to default if file is not found
         dispatch(setCode(''));
-        dispatch(setLanguage('javascript'));
+        dispatch(setLanguage(''));
       }
       previousFileRef.current = currentFile;
     }

@@ -1,28 +1,37 @@
+// src/components/Output.tsx
 import React from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RootState } from '../redux/store'; 
+
 function Output({ className }: { className?: string }) {
-  const { loading, result } = useSelector((state: any) => state.app);
+  const { loading, result } = useSelector((state: RootState) => state.xCode);
 
   return (
-    <div className={cn("col-span-1 md:col-span-4 h-[calc(80vh-64px)] bg-background/60", className)}>
+    <div
+      className={cn('col-span-1 md:col-span-4 h-[calc(80vh-64px)] bg-background/60', className)}
+    >
       <div className="p-4 h-full flex flex-col">
         <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-2 bg-dark-100 rounded-md shadow-md">
           <h2 className="text-base font-semibold mb-2 md:mb-0">Output</h2>
           <div className="flex flex-row items-center">
-            {result.execution_time && (
+            {typeof result.execution_time === 'number' && (
               <div className="bg-yellow-200 text-black px-3 py-1 rounded-md text-sm mr-2">
-                Time: {result.execution_time}
+                Time: {result.execution_time.toFixed(2)}s
               </div>
             )}
             <div className="flex justify-center items-center">
-              {result.success ? (
-                <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">Success</span>
-              ) : !result.success && result.status_message ? (
-                <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">Error</span>
+              {result.success === true ? (
+                <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">
+                  Success
+                </span>
+              ) : result.success === false && (result.status_message || result.error) ? (
+                <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
+                  Error
+                </span>
               ) : null}
             </div>
           </div>
@@ -43,7 +52,7 @@ function Output({ className }: { className?: string }) {
                   <Skeleton className="w-[170px] h-[20px] rounded-full" />
                 </div>
               </motion.div>
-            ) : result.success ? (
+            ) : result.success === true ? (
               result.output ? (
                 <motion.pre
                   key="output"
@@ -65,7 +74,7 @@ function Output({ className }: { className?: string }) {
                   <p>No output available.</p>
                 </motion.div>
               )
-            ) : result.error ? (
+            ) : result.success === false && (result.status_message || result.error) ? (
               <motion.div
                 key="error"
                 initial={{ opacity: 0 }}
@@ -73,11 +82,21 @@ function Output({ className }: { className?: string }) {
                 transition={{ duration: 0.3 }}
                 className="flex justify-center items-center h-full text-red-400"
               >
-                <p>{result.output || 'An error occurred.'}</p>
+                <p>{result.output || result.status_message || result.error || 'An error occurred.'}</p>
               </motion.div>
-            ) : null}
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="flex justify-center items-center h-full text-muted-foreground"
+              >
+                <p>No result yet.</p>
+              </motion.div>
+            )}
           </AnimatePresence>
-          <ScrollBar className='w-2 blue-500' orientation="vertical" />
+          <ScrollBar className="w-2 blue-500" orientation="vertical" />
         </ScrollArea>
       </div>
     </div>

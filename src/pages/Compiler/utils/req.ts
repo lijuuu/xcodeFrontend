@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { setLoading, setResult, setFiles } from '@/pages/Compiler/redux/actions';
+import { setLoading, setResult } from '@/pages/Compiler/redux/slice';
 import { Response } from '@/pages/Compiler/compiler-main';
 
 const environment = import.meta.env.VITE_ENVIRONMENT;
@@ -57,16 +57,16 @@ export const handleRequest = async (dispatch: any, code: string, reqLang: string
   }
 };
 
-export const saveCurrentFile = (dispatch: any, currentFile: string, code: string, files: any[]) => {
-  if (!currentFile) return;
+// export const saveCurrentFile = (dispatch: any, currentFile: string, code: string, files: any[]) => {
+//   if (!currentFile) return;
 
-  const updatedFiles = files.map((file: any) =>
-    file.id === currentFile
-      ? { ...file, content: code, lastModified: new Date().toISOString() }
-      : file
-  );
+//   const updatedFiles = files.map((file: any) =>
+//     file.id === currentFile
+//       ? { ...file, content: code, lastModified: new Date().toISOString() }
+//       : file
+//   );
 
-  dispatch(setFiles(updatedFiles));
-  localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
-};
+//   dispatch(setFiles(updatedFiles));
+//   localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
+// };
 

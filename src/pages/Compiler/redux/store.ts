@@ -1,7 +1,14 @@
+
 // src/store.ts
-import { createStore } from 'redux';
-import rootReducer from '@/pages/Compiler/redux/reducers';
+import { configureStore } from '@reduxjs/toolkit';
+import xCodeSlice from '@/pages/Compiler/redux/slice'; 
 
-const store = createStore(rootReducer);
+export const store = configureStore({
+  reducer: {
+    xCode: xCodeSlice,
+  },
+});
 
-export default store;
+// TypeScript types for hooks
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
