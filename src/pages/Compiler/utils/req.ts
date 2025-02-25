@@ -2,18 +2,23 @@ import axios from 'axios';
 import { setLoading, setResult, setFiles } from '@/pages/Compiler/redux/actions';
 import { Response } from '@/pages/Compiler/compiler-main';
 
+const environment = import.meta.env.VITE_ENVIRONMENT;
+const xEngineProductionUrl = import.meta.env.VITE_XENGINEPRODUCTIONURL;
+const xEngineLocalUrl = import.meta.env.VITE_XENGINELOCALURL;
+
+
 export const handleRequest = async (dispatch: any, code: string, reqLang: string) => {
   dispatch(setLoading(true));
   dispatch(setResult({ output: '', status_message: '', success: false }));
-
 
   if (reqLang == "") {
     console.log("No language selected");
     return;
   }
 
+
   try {
-    const response = await axios.post('https://xengine.lijuu.me/execute', {
+    const response = await axios.post(environment === 'DEVELOPMENT' ? xEngineLocalUrl : xEngineProductionUrl, {
       code: btoa(code),
       language: reqLang,
     }, {
