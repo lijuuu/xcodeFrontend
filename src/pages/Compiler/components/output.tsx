@@ -18,9 +18,9 @@ function Output({ className }: { className?: string }) {
         <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-2 bg-dark-100 rounded-md shadow-md">
           <h2 className="text-base font-semibold mb-2 md:mb-0">Output</h2>
           <div className="flex flex-row items-center">
-            {typeof result.execution_time === 'number' && (
+            { result.execution_time && (
               <div className="bg-yellow-200 text-black px-3 py-1 rounded-md text-sm mr-2">
-                Time: {result.execution_time.toFixed(2)}s
+                Time: {result.execution_time}
               </div>
             )}
             <div className="flex justify-center items-center">
