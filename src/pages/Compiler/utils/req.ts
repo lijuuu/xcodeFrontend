@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { setLoading, setResult } from '@/pages/Compiler/redux/slice';
+import { setLoading, setResult } from '../../../redux/slice';
 import { Response } from '@/pages/Compiler/compiler-page';
 
 const environment = import.meta.env.VITE_ENVIRONMENT;
-const xEngineProductionUrl = import.meta.env.VITE_XENGINEPRODUCTIONURL;
-const xEngineLocalUrl = import.meta.env.VITE_XENGINELOCALURL;
+const xEngineProductionUrl = import.meta.env.VITE_XENGINEPRODUCTIONENGINEURL;
+const xEngineLocalUrl = import.meta.env.VITE_XENGINELOCALENGINEURL;
 
 
 export const handleRequest = async (dispatch: any, code: string, reqLang: string) => {
