@@ -1,11 +1,7 @@
 // src/components/FileSystem.tsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +9,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
-import { File } from '@/pages/Compiler/compiler-main';
 import {
   Dialog,
   DialogContent,
@@ -22,14 +17,18 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { RootState, AppDispatch } from '../redux/store'; // Fixed path
+import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { File } from '@/pages/Compiler/compiler-page';
+import { RootState, AppDispatch } from '../../../redux/store';
 import {
   setCode,
   setFiles,
   setCurrentFile,
   setNewFileName,
   setRenaming,
-} from '../redux/slice'; // Fixed path
+} from '../../../redux/slice';
 
 const FileSystem: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -40,7 +39,7 @@ const FileSystem: React.FC = () => {
   const [isRenaming, setIsRenamingLocal] = useState(false);
   const [newFileName, setNewFileNameLocal] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [showUnsavedAlert, setShowUnsavedAlert] = useState(false); // Added for alert
+  // const [showUnsavedAlert, setShowUnsavedAlert] = useState(false);
 
   useEffect(() => {
     const loadFilesFromLocalStorage = () => {
@@ -73,7 +72,7 @@ const FileSystem: React.FC = () => {
       id: newId,
       name: `NewFile${files.length + 1}.${file}`,
       language,
-      content: files.length == 0 ?code : getPlaceholder(language),
+      content: files.length == 0 ? code : getPlaceholder(language),
       createdAt: new Date().toISOString(),
       lastModified: new Date().toISOString(),
     };
@@ -185,9 +184,8 @@ const FileSystem: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -5 }}
                       transition={{ duration: 0.2 }}
-                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-gray-700 ${
-                        currentFile === file.id ? 'bg-gray-600' : ''
-                      }`}
+                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-gray-700 ${currentFile === file.id ? 'bg-gray-600' : ''
+                        }`}
                       onClick={() => setCurrentFileFn(file.id)}
                     >
                       <div className="flex items-center">
@@ -264,7 +262,7 @@ const FileSystem: React.FC = () => {
       </Dialog>
 
       {/* Unsaved Changes Alert */}
-      <Dialog open={showUnsavedAlert} onOpenChange={setShowUnsavedAlert}>
+      {/* <Dialog open={showUnsavedAlert} onOpenChange={setShowUnsavedAlert}>
         <DialogContent className="sm:max-w-md bg-gray-800 text-white">
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
@@ -292,7 +290,7 @@ const FileSystem: React.FC = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </Sidebar>
   );
 };

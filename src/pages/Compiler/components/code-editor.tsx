@@ -1,17 +1,17 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { File } from '@/pages/Compiler/compiler-main';
+import { File } from '@/pages/Compiler/compiler-page';
 import { SaveIcon, PlayIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Editor } from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode } from '@/pages/Compiler/redux/slice';
-import { useTheme } from '@/components/theme-provider';
+import { setCode } from '../../../redux/slice';
+import { useTheme } from '@/hooks/theme-provider';
 import { cn } from '@/lib/utils';
-import { languages } from '@/pages/Compiler/compiler-main';
-import { RootState } from '../redux/store';
-import { AppDispatch } from '../redux/store';
-import { runCode, saveCurrentFile } from '../redux/slice';
+import { languages } from '@/pages/Compiler/compiler-page';
+import { RootState } from '../../../redux/store';
+import { AppDispatch } from '../../../redux/store';
+import { runCode, saveCurrentFile } from '../../../redux/slice';
 
 const CodeEditor: React.FC<{ className?: string }> = ({ className }) => {
   const { theme } = useTheme();

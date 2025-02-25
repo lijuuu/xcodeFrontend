@@ -1,7 +1,7 @@
 
 // src/store.ts
 import { configureStore } from '@reduxjs/toolkit';
-import xCodeSlice from '@/pages/Compiler/redux/slice'; 
+import xCodeSlice from './slice'; 
 
 export const store = configureStore({
   reducer: {

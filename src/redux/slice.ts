@@ -1,7 +1,7 @@
 // src/slices/xCodeSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { File, Response } from '@/pages/Compiler/compiler-main';
+import { File, Response } from '@/pages/Compiler/compiler-page';
 
 // Define state type
 interface XCodeState {
@@ -41,8 +41,8 @@ export const runCode = createAsyncThunk(
     const environment = import.meta.env.VITE_ENVIRONMENT;
     const apiUrl =
       environment === 'DEVELOPMENT'
-        ? import.meta.env.VITE_XENGINELOCALURL
-        : import.meta.env.VITE_XENGINEPRODUCTIONURL;
+        ? import.meta.env.VITE_XENGINELOCALENGINEURL
+        : import.meta.env.VITE_XENGINEPRODUCTIONENGINEURL;
 
     if (!reqLang) {
       console.log('No language selected');
