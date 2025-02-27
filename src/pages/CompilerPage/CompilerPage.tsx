@@ -7,11 +7,11 @@ import { SettingsIcon, CodeIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode, setCurrentFile, setFile, setLanguage } from '../../redux/slice';
+import { setCode, setCurrentFile, setFile, setLanguage } from '@/redux/xCodeCompiler';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import Output from '@/pages/Compiler/components/output';
-import CodeEditor from '@/pages/Compiler/components/code-editor';
-import FileSystem from '@/pages/Compiler/components/file-system';
+import Output from '@/pages/CompilerPage/components/Output';
+import CodeEditor from '@/pages/CompilerPage/components/CodeEditor';
+import FileSystem from '@/pages/CompilerPage/components/FileSystem';
 import {
   ResizablePanel,
   ResizablePanelGroup,
@@ -45,7 +45,7 @@ export const languages = [
 
 function OnlineCompilerPage() {
   const dispatch = useDispatch();
-  const { language, files, currentFile } = useSelector((state: any) => state.xCode);
+  const { language, files, currentFile } = useSelector((state: any) => state.xCodeCompiler);
   const { setTheme } = useTheme();
   const previousFileRef = useRef<string | null>(currentFile);
   const filesRef = useRef(files);

@@ -20,20 +20,20 @@ import { Input } from '@/components/ui/input';
 import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { File } from '@/pages/Compiler/compiler-page';
-import { RootState, AppDispatch } from '../../../redux/store';
+import { File } from '@/pages/CompilerPage/CompilerPage';
+import { RootState, AppDispatch } from '@/redux/store';
 import {
   setCode,
   setFiles,
   setCurrentFile,
   setNewFileName,
   setRenaming,
-} from '../../../redux/slice';
+} from '@/redux/xCodeCompiler';
 
 const FileSystem: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { code, language, file, files, currentFile } = useSelector(
-    (state: RootState) => state.xCode
+    (state: RootState) => state.xCodeCompiler
   );
   const [nameError, setNameError] = useState('');
   const [isRenaming, setIsRenamingLocal] = useState(false);

@@ -41,12 +41,12 @@ export function LoginForm({
             </Button>
           </form>
 
-          <div className="mt-4 space-y-2">
+          {/* <div className="mt-4 space-y-2">
             <Separator />
             <p className="text-center text-sm text-muted-foreground">Or continue with</p>
-          </div>
+          </div> */}
 
-          <div className="mt-4 flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+          {/* <div className="mt-4 flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
             <Button variant="outline" className="w-full">
               <Mail className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Continue with Google</span>
@@ -57,10 +57,10 @@ export function LoginForm({
               <span className="hidden sm:inline">Continue with GitHub</span>
               <span className="sm:hidden">GitHub</span>
             </Button>
-          </div>
+          </div> */}
 
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
+            Don't have an account?{" "}
             <button
               type="button"
               onClick={() => navigate("/signup")}

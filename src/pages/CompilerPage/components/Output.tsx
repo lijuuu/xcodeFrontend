@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RootState } from '../../../redux/store'; 
+import { RootState } from '@/redux/store'; 
 
 function Output({ className }: { className?: string }) {
-  const { loading, result } = useSelector((state: RootState) => state.xCode);
+  const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler);
 
   return (
     <div

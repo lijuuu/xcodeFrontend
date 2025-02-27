@@ -50,7 +50,7 @@ export function SignupForm({
             </Button>
           </form>
 
-          <div className="mt-3 space-y-1">
+          {/* <div className="mt-3 space-y-1">
             <Separator />
             <p className="text-center text-xs text-muted-foreground">Or continue with</p>
           </div>
@@ -72,7 +72,7 @@ export function SignupForm({
               <span className="hidden sm:inline">Continue with GitHub</span>
               <span className="sm:hidden">GitHub</span>
             </Button>
-          </div>
+          </div> */}
 
           <div className="mt-3 text-center text-xs">
             Already have an account?{" "}

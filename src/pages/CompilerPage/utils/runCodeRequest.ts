@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { setLoading, setResult } from '../../../redux/slice';
-import { Response } from '@/pages/Compiler/compiler-page';
+import { setLoading, setResult } from '@/redux/xCodeCompiler';
+import { Response } from '@/pages/CompilerPage/CompilerPage';
+import ROUTES from '@/routeconst';
 
 const environment = import.meta.env.VITE_ENVIRONMENT;
-const xEngineProductionUrl = import.meta.env.VITE_XENGINEPRODUCTIONENGINEURL;
-const xEngineLocalUrl = import.meta.env.VITE_XENGINELOCALENGINEURL;
 
+const compilerUrl = environment === 'DEVELOPMENT' ? ROUTES.COMPILERDEVELOPMENT : ROUTES.COMPILERPRODUCTION;
 
 export const handleRequest = async (dispatch: any, code: string, reqLang: string) => {
   dispatch(setLoading(true));
@@ -16,9 +16,8 @@ export const handleRequest = async (dispatch: any, code: string, reqLang: string
     return;
   }
 
-
   try {
-    const response = await axios.post(environment === 'DEVELOPMENT' ? xEngineLocalUrl : xEngineProductionUrl, {
+    const response = await axios.post(compilerUrl, {
       code: btoa(code),
       language: reqLang,
     }, {

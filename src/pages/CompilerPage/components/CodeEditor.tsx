@@ -1,23 +1,23 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { File } from '@/pages/Compiler/compiler-page';
+import { File } from '@/pages/CompilerPage/CompilerPage';
 import { SaveIcon, PlayIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Editor } from '@monaco-editor/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCode } from '../../../redux/slice';
+import { setCode } from '@/redux/xCodeCompiler';
 import { useTheme } from '@/hooks/theme-provider';
 import { cn } from '@/lib/utils';
-import { languages } from '@/pages/Compiler/compiler-page';
-import { RootState } from '../../../redux/store';
-import { AppDispatch } from '../../../redux/store';
-import { runCode, saveCurrentFile } from '../../../redux/slice';
+import { languages } from '@/pages/CompilerPage/CompilerPage';
+import { RootState } from '@/redux/store';
+import { AppDispatch } from '@/redux/store';
+import { runCode, saveCurrentFile } from '@/redux/xCodeCompiler';
 
 const CodeEditor: React.FC<{ className?: string }> = ({ className }) => {
   const { theme } = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   const { code, language, files, currentFile } = useSelector(
-    (state: RootState) => state.xCode
+    (state: RootState) => state.xCodeCompiler
   );
 
   const handleRun = () => {
