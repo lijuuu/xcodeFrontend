@@ -4,15 +4,47 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Github, Mail } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 
-export function SignupForm({
+const registerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(20, "Password must be less than 20 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Password must have uppercase, lowercase, number, and special character"
+    ),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+function SignupForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = (data: RegisterFormData) => {
+    console.log("Form Data:", data);
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -22,57 +54,38 @@ export function SignupForm({
           <CardDescription className="text-sm">Create a new account</CardDescription>
         </CardHeader>
         <CardContent className="px-4 py-3">
-          <form className="space-y-3">
+          <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="firstName" className="text-sm">First Name</Label>
-                <Input id="firstName" type="text" placeholder="John" required className="h-9" />
+                <Input id="firstName" type="text" placeholder="John" {...register("firstName")} />
+                {errors.firstName && <p className="text-red-500 text-xs">{errors.firstName.message}</p>}
               </div>
               <div className="space-y-1">
                 <Label htmlFor="lastName" className="text-sm">Last Name</Label>
-                <Input id="lastName" type="text" placeholder="Doe" required className="h-9" />
+                <Input id="lastName" type="text" placeholder="Doe" {...register("lastName")} />
+                {errors.lastName && <p className="text-red-500 text-xs">{errors.lastName.message}</p>}
               </div>
             </div>
             <div className="space-y-1">
               <Label htmlFor="email" className="text-sm">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" required className="h-9" />
+              <Input id="email" type="email" placeholder="m@example.com" {...register("email")} />
+              {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
             <div className="space-y-1">
               <Label htmlFor="password" className="text-sm">Password</Label>
-              <Input id="password" type="password" required className="h-9" />
+              <Input id="password" type="password" {...register("password")} />
+              {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
             </div>
             <div className="space-y-1">
               <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" required className="h-9" />
+              <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+              {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>}
             </div>
             <Button type="submit" className="w-full h-9">
               Sign Up
             </Button>
           </form>
-
-          {/* <div className="mt-3 space-y-1">
-            <Separator />
-            <p className="text-center text-xs text-muted-foreground">Or continue with</p>
-          </div>
-
-          <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-            <Button 
-              variant="outline" 
-              className="w-full h-8 text-xs px-2"
-            >
-              <Mail className="mr-1 h-3 w-3" />
-              <span className="hidden sm:inline">Continue with Google</span>
-              <span className="sm:hidden">Google</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full h-8 text-xs px-2"
-            >
-              <Github className="mr-1 h-3 w-3" />
-              <span className="hidden sm:inline">Continue with GitHub</span>
-              <span className="sm:hidden">GitHub</span>
-            </Button>
-          </div> */}
 
           <div className="mt-3 text-center text-xs">
             Already have an account?{" "}
@@ -89,3 +102,5 @@ export function SignupForm({
     </div>
   )
 }
+
+export default SignupForm;
