@@ -1,176 +1,112 @@
 /**
  * ROUTES - A collection of API endpoints for the application.
- * 
+ *
  * This object contains the base URLs for production and development environments,
  * as well as the specific API routes for user authentication, profile management,
  * and admin operations.
  */
-
 const ROUTES = {
   // Compiler Routes
   COMPILERPRODUCTION: "https://xengine.lijuu.me/execute", // Production endpoint for the compiler service
   COMPILERDEVELOPMENT: "http://localhost:8000/execute",   // Development endpoint for the compiler service
 
-  // BASE URL Routes
+  // Base URL Routes
   BASEURL: "https://xservices.lijuu.me",                 // Production base URL for services
-  BASEURLDEVELOPMENT: "http://localhost:8000",           // Development base URL for services
+  BASEURLDEVELOPMENT: "http://localhost:7000",           // Development base URL for services
 
   // API Routes AuthUserAdminService
-  HOME: "/api/v1",                                        // Base route for API versioning  //Health Check
-  REGISTER: "/api/v1/auth/register",                     // User registration
-  // Request Data: 
-  // { 
-  //   firstName: string, 
-  //   lastName: string, 
-  //   country: string, 
-  //   role: string, 
-  //   primaryLanguageID: string, 
-  //   secondaryLanguageID: string[], 
-  //   email: string, 
-  //   authType: string, 
-  //   password: string, 
-  //   confirmPassword: string, 
-  //   muteNotifications: boolean, 
-  //   socials: { github?: string, twitter?: string, linkedin?: string } 
-  // }
+  HOME: "/api/v1",                                       // Base route for API versioning (Health Check)
+  
+  // Public Auth Routes
+  REGISTER: "/api/v1/auth/register",                     // User registration (POST)
+  // Request Data (JSON): { firstName, lastName, email, authType, password, confirmPassword }
 
-  LOGIN: "/api/v1/auth/login",                           // User login
-  // Request Data: 
-  // { 
-  //   email: string, 
-  //   password: string 
-  // }
+  LOGIN: "/api/v1/auth/login",                           // User login (POST)
+  // Request Data (JSON): { email, password }
 
-  TOKEN_REFRESH: "/api/v1/auth/token/refresh",          // Refresh JWT token
-  // Request Data: 
-  // { 
-  //   refreshToken: string 
-  // }
+  TOKEN_REFRESH: "/api/v1/auth/token/refresh",           // Refresh JWT token (POST)
+  // Request Data (JSON): { refreshToken }
 
-  VERIFY: "/api/v1/auth/verify",                         // Verify user with token
-  // Query Params: 
-  // { 
-  //   userID: string, 
-  //   token: string 
-  // }
+  VERIFY: "/api/v1/auth/verify",                         // Verify user with token (GET)
+  // Query Params: ?email=<email>&token=<token>
 
-  OTP_RESEND: "/api/v1/auth/otp/resend",                 // Resend OTP for user verification
-  // Query Params: 
-  // { 
-  //   userID: string 
-  // }
+  OTP_RESEND: "/api/v1/auth/verify/resend",              // Resend OTP for user verification (GET)
+  // Query Params: ?email=<email>
 
-  FORGOT_PASSWORD: "/api/v1/auth/password/forgot",      // Request password reset
-  // Request Data: 
-  // { 
-  //   email: string 
-  // }
+  FORGOT_PASSWORD: "/api/v1/auth/password/forgot",       // Request password reset (GET)
+  // Query Params: ?email=<email>
 
-  PROFILE: "/api/v1/users/profile",                       // Get user profile
-  // No request data required, uses JWT for authentication
+  FINISH_FORGOT_PASSWORD: "/api/v1/auth/password/reset", // Reset password (POST)
+  // Request Data (JSON): { userID, token, newPassword, confirmPassword }
 
-  ALL_USERS: "/api/v1/users/profile/all",                // Get all users (admin only)
-  // No request data required, uses JWT for authentication
+  // Protected User Routes (JWT + USER role required)
+  PROFILE: "/api/v1/users/profile",                      // Get user profile (GET)
+  // No request data, uses JWT
 
-  UPDATE_PROFILE: "/api/v1/users/profile/update",        // Update user profile
-  // Request Data: 
-  // { 
-  //   firstName: string, 
-  //   lastName: string, 
-  //   country: string, 
-  //   role: string, 
-  //   primaryLanguageID: string, 
-  //   secondaryLanguageID: string[] 
-  // }
+  UPDATE_PROFILE: "/api/v1/users/profile/update",        // Update user profile (PUT)
+  // Request Data (JSON): { userID, firstName, lastName, country, primaryLanguageID, muteNotifications, socials: { github, twitter, linkedin } }
 
-  UPDATE_PROFILE_IMAGE: "/api/v1/users/profile/image",   // Update user profile image
-  // Request Data: 
-  // { 
-  //   imageData: string // Base64 encoded image data 
-  // }
+  UPDATE_PROFILE_IMAGE: "/api/v1/users/profile/image",   // Update user profile image (PATCH)
+  // Request Data (JSON): { userID, avatarURL }
 
-  FOLLOW: "/api/v1/users/follow",                         // Follow a user
-  // Request Data: 
-  // { 
-  //   userID: string // ID of the user to follow 
-  // }
+  BAN_HISTORY: "/api/v1/users/profile/ban-history",      // Get user ban history (GET)
+  // No request data, uses JWT for userID
 
-  UNFOLLOW: "/api/v1/users/unfollow",                     // Unfollow a user
-  // Request Data: 
-  // { 
-  //   userID: string // ID of the user to unfollow 
-  // }
+  FOLLOW: "/api/v1/users/follow",                        // Follow a user (POST)
+  // Query Params: ?followUserID=<uuid> (followerID from JWT)
 
-  FOLLOWING: "/api/v1/users/follow/following",           // Get list of users being followed
-  // No request data required, uses JWT for authentication
+  UNFOLLOW: "/api/v1/users/follow",                      // Unfollow a user (DELETE)
+  // Query Params: ?unfollowUserID=<uuid> (followerID from JWT)
 
-  FOLLOWERS: "/api/v1/users/followers",                   // Get list of followers
-  // No request data required, uses JWT for authentication
+  FOLLOWING: "/api/v1/users/follow/following",           // Get list of users being followed (GET)
+  // Query Params: ?userID=<uuid> (optional, defaults to authenticated user)
 
-  CHANGE_PASSWORD: "/api/v1/users/security/password/change", // Change user password
-  // Request Data: 
-  // { 
-  //   oldPassword: string, 
-  //   newPassword: string, 
-  //   confirmPassword: string 
-  // }
+  FOLLOWERS: "/api/v1/users/followers",                  // Get list of followers (GET)
+  // Query Params: ?userID=<uuid> (optional, defaults to authenticated user)
 
-  SET_TWO_FACTOR_AUTH: "/api/v1/users/security/2fa",    // Enable/disable two-factor authentication
-  // Request Data: 
-  // { 
-  //   enable: boolean // true to enable, false to disable 
-  // }
+  CHANGE_PASSWORD: "/api/v1/users/security/password/change", // Change user password (POST)
+  // Request Data (JSON): { userID, oldPassword, newPassword, confirmPassword }
 
-  LOGOUT: "/api/v1/users/logout",                         // User logout
-  // No request data required, uses JWT for authentication
+  SET_TWO_FACTOR_AUTH: "/api/v1/users/security/2fa",     // Enable/disable two-factor authentication (POST)
+  // Request Data (JSON): { userID, twoFactorAuth: boolean }
 
-  ADMIN_LOGIN: "/api/v1/admin/login",                     // Admin login
-  // Request Data: 
-  // { 
-  //   email: string, 
-  //   password: string 
-  // }
+  LOGOUT: "/api/v1/users/logout",                        // User logout (POST)
+  // Request Data (JSON): { userID }
 
-  ADMIN_USERS: "/api/v1/admin/users",                     // Get all users (admin)
-  // No request data required, uses JWT for authentication
+  SEARCH_USERS: "/api/v1/users/search",                  // Search users (GET)
+  // Query Params: ?query=<string>&pageToken=<string>&limit=<number>
 
-  UPDATE_USER_ADMIN: "/api/v1/admin/users/update",       // Update user details (admin)
-  // Request Data: 
-  // { 
-  //   userID: string, 
-  //   updateData: { /* fields to update */ } 
-  // }
+  // Admin Routes
+  ADMIN_LOGIN: "/api/v1/admin/login",                    // Admin login (POST)
+  // Request Data (JSON): { email, password }
 
-  SOFT_DELETE_USER_ADMIN: "/api/v1/admin/users/soft-delete", // Soft delete a user (admin)
-  // Request Data: 
-  // { 
-  //   userID: string 
-  // }
+  ADMIN_USERS: "/api/v1/admin/users",                    // Get all users (admin) (GET)
+  // Query Params: ?pageToken=<string>&limit=<number>&roleFilter=<string>&statusFilter=<string>
 
-  VERIFY_ADMIN_USER: "/api/v1/admin/users/verify",       // Verify a user (admin)
-  // Request Data: 
-  // { 
-  //   userID: string 
-  // }
+  CREATE_USER_ADMIN: "/api/v1/admin/users",              // Create user (admin) (POST)
+  // Request Data (JSON): { firstName, lastName, role, email, authType, password, confirmPassword }
 
-  UNVERIFY_USER: "/api/v1/admin/users/unverify",         // Unverify a user (admin)
-  // Request Data: 
-  // { 
-  //   userID: string 
-  // }
+  UPDATE_USER_ADMIN: "/api/v1/admin/users/update",       // Update user details (admin) (PUT)
+  // Query Params: ?userID=<uuid>
+  // Request Data (JSON): { firstName, lastName, country, role, email, password, primaryLanguageID, muteNotifications, socials }
 
-  BLOCK_USER: "/api/v1/admin/users/block",               // Block a user (admin)
-  // Request Data: 
-  // { 
-  //   userID: string 
-  // }
+  SOFT_DELETE_USER_ADMIN: "/api/v1/admin/users/soft-delete", // Soft delete a user (admin) (DELETE)
+  // Query Params: ?userID=<uuid>
 
-  UNBLOCK_USER: "/api/v1/admin/users/unblock",           // Unblock a user (admin)
-  // Request Data: 
-  // { 
-  //   userID: string 
-  // }
+  VERIFY_ADMIN_USER: "/api/v1/admin/users/verify",       // Verify a user (admin) (POST)
+  // Query Params: ?userID=<uuid>
+
+  UNVERIFY_USER: "/api/v1/admin/users/unverify",         // Unverify a user (admin) (POST)
+  // Query Params: ?userID=<uuid>
+
+  BAN_USER: "/api/v1/admin/users/ban",                   // Ban a user (admin) (POST)
+  // Request Data (JSON): { userID, banType, banReason, banExpiry }
+
+  UNBAN_USER: "/api/v1/admin/users/unban",               // Unban a user (admin) (POST)
+  // Query Params: ?userID=<uuid>
+
+  ADMIN_BAN_HISTORY: "/api/v1/admin/users/ban-history",  // Get user ban history (admin) (GET)
+  // Query Params: ?userID=<uuid>
 };
 
 export default ROUTES;
-

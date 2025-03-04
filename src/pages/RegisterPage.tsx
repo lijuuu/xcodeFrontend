@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -8,6 +8,9 @@ import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { registerUser, clearAuthInitialState } from "@/redux/xCodeAuth";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner"
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -34,6 +37,8 @@ function SignupForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
@@ -42,9 +47,23 @@ function SignupForm({
     resolver: zodResolver(registerSchema),
   });
 
+  const { error, user } = useSelector((state: any) => state.xCodeAuth);
+
   const onSubmit = (data: RegisterFormData) => {
     console.log("Form Data:", data);
+    dispatch(registerUser(data) as any);
   };
+
+  useEffect(() => {
+    if (user && error == null) {
+      navigate("/verify-email");
+      toast.success("Email sent to verify your account");
+    }
+  }, [user, error, navigate]);
+
+  useEffect(() => {
+    dispatch(clearAuthInitialState());
+  }, []);
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -81,6 +100,9 @@ function SignupForm({
               <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
               <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
               {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>}
+            </div>
+            <div>
+              {error && <p className="text-red-500 text-xs">{error.details}</p>}
             </div>
             <Button type="submit" className="w-full h-9">
               Sign Up

@@ -17,7 +17,7 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
-
+import { useNavigate } from 'react-router-dom';
 interface File {
   id: string;
   name: string;
@@ -95,6 +95,8 @@ function OnlineCompilerPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const navigate = useNavigate();
+
 
   return (
     <>
@@ -106,7 +108,7 @@ function OnlineCompilerPage() {
               <div className="flex items-center space-x-2">
                 <CodeIcon className="h-5 w-5" />
                 <CardTitle className="text-xl font-bold"> xcode <span className="text-xs text-muted-foreground"> -- building a better compiler</span></CardTitle>
-              </div>
+              </div>  
               <div className="flex items-center gap-2">
                 <div className="hidden md:block">
                   <Tabs>

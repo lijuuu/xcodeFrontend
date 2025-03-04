@@ -1,23 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "@/redux/xCodeAuth";
-import { useDispatch } from "react-redux";
+import { loginUser, clearAuthInitialState } from "@/redux/xCodeAuth";
+import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 // ✅ Define Zod schema for login validation
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z
     .string()
+
     .min(6, "Password must be at least 6 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
       "Password must have uppercase, lowercase, number, and special character")
     .max(20, "Password must be less than 20 characters"),
 });
@@ -42,6 +44,29 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
     console.log("Form Data:", data);
     dispatch(loginUser(data) as any);
   };
+  const { user, error, loading } = useSelector((state: any) => state.xCodeAuth);
+
+  useEffect(() => {
+    if (user && !error) {
+      navigate("/home");
+      toast.success("Login successful!");
+    } else if (error) {
+      // Check numeric status code
+      if (error.code === 401) {
+        navigate("/verify-email");
+        toast.info("Please verify your email address");
+      } else {
+        toast.error(error.details || "An error occurred");
+      }
+    }
+  }, [user, error, navigate]);
+
+  useEffect(() => {
+    if (user?.isVerified) {
+      navigate("/home");
+      toast.success("Already Logged In!");
+    }
+  }, []);
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -58,7 +83,7 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
               <Input id="email" type="email" placeholder="m@example.com" {...register("email")} />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
@@ -69,6 +94,13 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
               <Input id="password" type="password" {...register("password")} />
               {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
+            <div>
+              {error && (
+                <p className="text-red-500 text-sm">
+                  Login failed
+                </p>
+              )}
+            </div>
 
             <Button type="submit" className="w-full">
               Login
@@ -77,13 +109,13 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
 
           <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
-            <button
+            {loading ? <p>Loading...</p> : <button
               type="button"
               onClick={() => navigate("/signup")}
               className="font-medium underline underline-offset-4 hover:text-primary"
             >
               Sign up
-            </button>
+            </button>}
           </div>
         </CardContent>
       </Card>
