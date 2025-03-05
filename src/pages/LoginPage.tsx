@@ -12,15 +12,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-// ✅ Define Zod schema for login validation
+// Define Zod schema for login validation
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z
     .string()
-
     .min(6, "Password must be at least 6 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Password must have uppercase, lowercase, number, and special character")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Password must have uppercase, lowercase, number, and special character"
+    )
     .max(20, "Password must be less than 20 characters"),
 });
 
@@ -30,7 +31,7 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // ✅ Set up react-hook-form with Zod resolver
+  // Set up react-hook-form with Zod resolver
   const {
     register,
     handleSubmit,
@@ -39,34 +40,41 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
     resolver: zodResolver(loginSchema),
   });
 
-  // ✅ Handle form submission
+  // Redux state
+  const { user, error, loading } = useSelector((state: any) => state.xCodeAuth);
+
+  // Handle form submission
   const onSubmit = (data: LoginFormData) => {
     console.log("Form Data:", data);
     dispatch(loginUser(data) as any);
   };
-  const { user, error, loading } = useSelector((state: any) => state.xCodeAuth);
 
+  // Handle login success or error
   useEffect(() => {
-    if (user && !error) {
+    // Only navigate or show toast if user or error changes meaningfully
+    if (user && !error && !loading) {
       navigate("/home");
       toast.success("Login successful!");
-    } else if (error) {
-      // Check numeric status code
+      // Optionally clear auth state after successful login
+      dispatch(clearAuthInitialState());
+    } else if (error && !loading) {
       if (error.code === 401) {
         navigate("/verify-email");
         toast.info("Please verify your email address");
+        dispatch(clearAuthInitialState());
       } else {
         toast.error(error.details || "An error occurred");
       }
     }
-  }, [user, error, navigate]);
+  }, [user, error, loading, navigate, dispatch]);
 
+  // Check if already logged in on mount
   useEffect(() => {
-    if (user?.isVerified) {
+    if (user?.isVerified && !error && !loading) {
       navigate("/home");
       toast.success("Already Logged In!");
     }
-  }, []);
+  }, []); // Empty dependency array to run only on mount
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -76,7 +84,6 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
           <CardDescription>Enter your email below to login to your account</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* ✅ Handle form submission using react-hook-form */}
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -94,28 +101,28 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
               <Input id="password" type="password" {...register("password")} />
               {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
-            <div>
-              {error && (
-                <p className="text-red-500 text-sm">
-                  Login failed
-                </p>
-              )}
-            </div>
+            {error && !loading && (
+              <p className="text-red-500 text-sm">Login failed</p>
+            )}
 
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
 
           <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
-            {loading ? <p>Loading...</p> : <button
-              type="button"
-              onClick={() => navigate("/signup")}
-              className="font-medium underline underline-offset-4 hover:text-primary"
-            >
-              Sign up
-            </button>}
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                className="font-medium underline underline-offset-4 hover:text-primary"
+              >
+                Sign up
+              </button>
+            )}
           </div>
         </CardContent>
       </Card>
