@@ -5,16 +5,18 @@ import LoginForm from "@/pages/LoginPage";
 import SignupForm from "@/pages/RegisterPage";
 import VerifyEmail from "@/pages/VerifyEmail";
 import Home from "./pages/Home";
+// import Demo from "./pages/demo";
 function App() {
   return (
     <>
       <Router>
         <Routes>
-          <Route path="/compiler" element={<OnlineCompilerPage />} />
+          <Route path="/" element={<OnlineCompilerPage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/home" element={<Home />} />
+          {/* <Route path="/demo" element={<Demo />} /> */}
         </Routes>
       </Router>
     </>

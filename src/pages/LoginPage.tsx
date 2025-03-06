@@ -12,7 +12,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-// Define Zod schema for login validation
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z
@@ -31,7 +30,6 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Set up react-hook-form with Zod resolver
   const {
     register,
     handleSubmit,
@@ -40,22 +38,17 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
     resolver: zodResolver(loginSchema),
   });
 
-  // Redux state
   const { user, error, loading } = useSelector((state: any) => state.xCodeAuth);
 
-  // Handle form submission
   const onSubmit = (data: LoginFormData) => {
     console.log("Form Data:", data);
     dispatch(loginUser(data) as any);
   };
 
-  // Handle login success or error
   useEffect(() => {
-    // Only navigate or show toast if user or error changes meaningfully
     if (user && !error && !loading) {
       navigate("/home");
       toast.success("Login successful!");
-      // Optionally clear auth state after successful login
       dispatch(clearAuthInitialState());
     } else if (error && !loading) {
       if (error.code === 401) {
@@ -68,13 +61,12 @@ function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div"
     }
   }, [user, error, loading, navigate, dispatch]);
 
-  // Check if already logged in on mount
   useEffect(() => {
     if (user?.isVerified && !error && !loading) {
       navigate("/home");
       toast.success("Already Logged In!");
     }
-  }, []); // Empty dependency array to run only on mount
+  }, []); 
 
   return (
     <div className="flex justify-center items-center min-h-screen">
