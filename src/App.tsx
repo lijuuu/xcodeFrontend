@@ -5,7 +5,7 @@ import LoginForm from "@/pages/LoginPage";
 import SignupForm from "@/pages/RegisterPage";
 import VerifyEmail from "@/pages/VerifyEmail";
 import Home from "./pages/Home";
-// import Demo from "./pages/demo";
+import Demo from "./pages/Demo";
 function App() {
   return (
     <>
@@ -16,7 +16,7 @@ function App() {
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/home" element={<Home />} />
-          {/* <Route path="/demo" element={<Demo />} /> */}
+          <Route path="/demo" element={<Demo />} />
         </Routes>
       </Router>
     </>

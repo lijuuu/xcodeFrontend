@@ -1,16 +1,16 @@
-import React, { useEffect } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useNavigate } from "react-router-dom"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { registerUser, clearAuthInitialState } from "@/redux/xCodeAuth";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "sonner"
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -32,22 +32,12 @@ const registerSchema = z.object({
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-function SignupForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+function SignupForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-  });
-
   const { error, user } = useSelector((state: any) => state.xCodeAuth);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
 
   const onSubmit = (data: RegisterFormData) => {
     console.log("Form Data:", data);
@@ -66,55 +56,82 @@ function SignupForm({
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <Card className={cn("w-full max-w-md", className)} {...props}>
-        <CardHeader className="space-y-1 px-4 py-3">
-          <CardTitle className="text-xl font-bold">Sign Up</CardTitle>
-          <CardDescription className="text-sm">Create a new account</CardDescription>
+    <div className="flex justify-center bg-black items-center min-h-screen ">
+      <Card className={cn("w-full max-w-md bg-blue-800", className)} {...props}>
+        <CardHeader className="space-y-1 items-center  px-4 py-3 m-5">
+          <CardTitle className="text-xl font-bold text-white">Create an Account</CardTitle>
         </CardHeader>
-        <CardContent className="px-4 py-3">
+        <CardContent className="px-4 py-3 m-5">
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
-                <Label htmlFor="firstName" className="text-sm">First Name</Label>
-                <Input id="firstName" type="text" placeholder="John" {...register("firstName")} />
-                {errors.firstName && <p className="text-red-500 text-xs">{errors.firstName.message}</p>}
+                <Label htmlFor="firstName" className="text-sm text-white">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  {...register("firstName")}
+                  className={errors.firstName ? "border-error-text" : ""}
+                />
+                {errors.firstName && <p className="text-xs text-red-500">{errors.firstName.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="lastName" className="text-sm">Last Name</Label>
-                <Input id="lastName" type="text" placeholder="Doe" {...register("lastName")} />
-                {errors.lastName && <p className="text-red-500 text-xs">{errors.lastName.message}</p>}
+                <Label htmlFor="lastName" className="text-sm text-white">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  {...register("lastName")}
+                  className={errors.lastName ? "border-error-text" : ""}
+                />
+                {errors.lastName && <p className="text-error-text text-xs">{errors.lastName.message}</p>}
               </div>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="email" className="text-sm">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" {...register("email")} />
-              {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+              <Label htmlFor="email" className="text-sm text-white">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                {...register("email")}
+                className={errors.email ? "border-error-text" : ""}
+              />
+              {errors.email && <p className="text-error-text text-xs">{errors.email.message}</p>}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="password" className="text-sm">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
-              {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
+              <Label htmlFor="password" className="text-sm text-white">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                {...register("password")}
+                className={errors.password ? "border-error-text" : ""}
+              />
+              {errors.password && <p className="text-error-text text-xs">{errors.password.message}</p>}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
-              {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>}
+              <Label htmlFor="confirmPassword" className="text-sm text-white">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...register("confirmPassword")}
+                className={errors.confirmPassword ? "border-error-text" : ""}
+              />
+              {errors.confirmPassword && <p className="text-error-text text-xs">{errors.confirmPassword.message}</p>}
             </div>
             <div>
-              {error && <p className="text-red-500 text-xs">{error.details}</p>}
+              {error && <p className="text-error-text text-xs">{error.details}</p>}
             </div>
-            <Button type="submit" className="w-full h-9">
+            <Button className="bg-primary-button-red text-white hover:text-black hover:bg-blue-600 w-full h-9" type="submit">
               Sign Up
             </Button>
           </form>
 
-          <div className="mt-3 text-center text-xs">
+          <div className="mt-3 text-center text-xs text-gray-300">
             Already have an account?{" "}
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="font-medium underline underline-offset-4 hover:text-primary"
+              className="font-medium underline underline-offset-4 hover:text-primary text-white"
             >
               Login
             </button>
@@ -122,7 +139,7 @@ function SignupForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default SignupForm;
