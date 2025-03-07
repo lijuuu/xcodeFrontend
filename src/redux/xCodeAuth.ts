@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import ROUTES from '@/routeconst';
+import ROUTES from '@/constants/routeconst';
 import Cookies from 'js-cookie';
 
 // Define the response types

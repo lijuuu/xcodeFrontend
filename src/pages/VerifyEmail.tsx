@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import axios from "axios";
-import ROUTES from "@/routeconst";
+import ROUTES from "@/constants/routeconst";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const VerifyEmail = () => {
 
     try {
       setLoading(true);
-      const response:any = await axios.get(
+      const response: any = await axios.get(
         ROUTES.BASEURLDEVELOPMENT + ROUTES.OTP_RESEND + `?email=${email}`
       );
 

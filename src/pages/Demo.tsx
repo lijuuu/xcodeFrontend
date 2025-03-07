@@ -29,6 +29,22 @@ const Demo = () => {
           <div className="font-['Atari'] text-8xl hover:text-blue-700 transition-colors selection:bg-blue-400 selection:text-white">
             xcode
           </div>
+
+          <div className="font-['Coinbase_Display'] text-6xl">
+            xcode Display
+          </div>
+
+          <div className="font-['Coinbase_Mono'] text-6xl">
+            xcode Mono
+          </div>
+
+          <div className="font-['Coinbase_Sans'] text-6xl">
+            xcode Sans
+          </div>
+
+          <div className="font-['Coinbase_Text'] text-6xl">
+            xcode Text
+          </div>
         </div>
       </div>
     </div>
