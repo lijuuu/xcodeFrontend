@@ -88,10 +88,10 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen  bg-night-black text-white relative">
+    <div className="flex flex-col min-h-screen  bg-night-black text-white ">
       {/* Progress Bar (Static for Login) */}
       <div className="bg-blue-800 h-2" style={{ width: "100%" }} />
-      <SimpleHeader currentPage="/signup" />
+      <SimpleHeader currentPage="/signup" name ={"Sign Up"} />
       <div className="flex justify-center items-center flex-1">
         {loading && <LoaderOverlay onCancel={() => dispatch(clearAuthInitialState())} />}
         <div

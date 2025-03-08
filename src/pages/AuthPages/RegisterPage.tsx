@@ -77,7 +77,7 @@ const professions = [
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">
-    <Loader1 className="w-12 h-12 mt-44 mr-10 text-blue-800" />
+    <Loader1 className="w-12 h-12 mr-10 text-blue-800" />
     <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
       Creating your account
     </div>
@@ -113,13 +113,13 @@ function SignupForm({
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-night-black text-white">
-      <SimpleHeader currentPage="/login" />
+    <div className="flex flex-col  bg-night-black text-white">
+      <SimpleHeader currentPage="/login" name ={"Sign Up"} />
 
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            "w-full max-w-md  bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg",
+            "w-full max-w-md  bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg mt-24",
             className
           )}
           {...props}
@@ -129,7 +129,7 @@ function SignupForm({
           </h1>
           <p className="text-center text-gray-400 mb-6 text-sm font-coinbase-sans">
             Register your account to access all that xcode has to offer
-          </p>
+          </p>  
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm text-white font-coinbase-sans">
@@ -215,7 +215,7 @@ function RegisterStage2({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen bg-night-black text-white">
+    <div className="flex flex-col  bg-night-black text-white">
       <header className="flex justify-between items-center px-6 py-4 bg-night-black">
         <div className="text-2xl font-bold text-white font-coinbase-display hover:cursor-crosshair">
           xcode
@@ -231,7 +231,7 @@ function RegisterStage2({
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg",
+            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg mt-24",
             className
           )}
           {...props}
@@ -330,23 +330,13 @@ function RegisterStage3({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen bg-night-black text-white ">
-      <header className="flex justify-between items-center px-6 py-4 bg-night-black">
-        <div className="text-2xl font-bold text-white font-coinbase-display hover:cursor-crosshair">
-          xcode
-        </div>
-        <button
-          onClick={() => navigate("/login")}
-          className="text-sm text-white font-coinbase-sans hover:none"
-        >
-          Sign In
-        </button>
-      </header>
+    <div className="flex flex-col  bg-night-black text-white ">
+     <SimpleHeader currentPage="/login" name ={"Sign In"} />
 
-      <div className="flex justify-center items-center flex-1 p-4">
+      <div className="flex justify-center items-center flex-1 p-4 ">
         <div
           className={cn(
-            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg",
+            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg mt-24",
             className
           )}
           {...props}
@@ -446,23 +436,13 @@ function RegisterStage4({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen bg-night-black text-white">
-      <header className="flex justify-between items-center px-6 py-4 bg-night-black">
-        <div className="text-2xl font-bold text-white font-coinbase-display hover:cursor-crosshair">
-          xcode
-        </div>
-        <button
-          onClick={() => navigate("/login")}
-          className="text-sm text-white font-coinbase-sans hover:none"
-        >
-          Sign In
-        </button>
-      </header>
+    <div className="flex flex-col  bg-night-black text-white">
+     <SimpleHeader currentPage="/login" name ={"Sign In"} />
 
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg",
+            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg mt-24",
             className
           )}
           {...props}

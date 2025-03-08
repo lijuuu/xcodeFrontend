@@ -1,8 +1,8 @@
 import React from "react";
 import OnlineCompilerPage from "@/pages/CompilerPage/CompilerPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginForm from "@/pages/LoginPage";
-import SignupForm from "@/pages/RegisterPage";
+import LoginForm from "@/pages/AuthPages/LoginPage";
+import SignupForm from "@/pages/AuthPages/RegisterPage";
 import VerifyEmail from "@/pages/VerifyEmail";
 import Home from "./pages/Home";
 import Demo from "./pages/Demo";
