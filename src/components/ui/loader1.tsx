@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
+
 const Loader1 = ({ className }: { className?: string }) => {
   return (
     <StyledWrapper className={className}>

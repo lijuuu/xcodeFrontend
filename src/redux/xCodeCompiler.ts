@@ -4,16 +4,16 @@ import { File, Response } from '@/pages/CompilerPage/CompilerPage';
 
 // Define state type
 interface XCodeState {
-  code: string; // The code to be executed
-  language: string; // The programming language of the code
-  loading: boolean; // Loading state for async operations
-  file: string; // The current file type (e.g., 'js', 'py')
-  result: Response; // The result of the code execution
-  files: File[]; // List of files in the editor
-  currentFile: string | null; // ID of the currently active file
-  isRenaming: boolean; // State to check if a file is being renamed
-  newFileName: string; // New name for the file being renamed
-  fileToRename: string | null; // ID of the file to rename
+  code: string;
+  language: string; 
+  loading: boolean; 
+  file: string; 
+  result: Response; 
+  files: File[];  
+  currentFile: string | null; 
+  isRenaming: boolean; 
+  newFileName: string; 
+  fileToRename: string | null; 
 }
 
 // Initial state
@@ -30,13 +30,7 @@ const initialState: XCodeState = {
   fileToRename: null,
 };
 
-/**
- * Async thunk for running code.
- * @param {Object} param0 - The parameters for the thunk.
- * @param {string} param0.code - The code to execute.
- * @param {string} param0.reqLang - The requested programming language.
- * @returns {Promise<Response>} The result of the code execution.
- */
+
 export const runCode = createAsyncThunk(
   'xCodeCompiler/runCode',
   async (
@@ -93,91 +87,46 @@ const xCodeCompilerSlice = createSlice({
   name: 'xCodeCompiler',
   initialState,
   reducers: {
-    /**
-     * Set the code in the state.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<string>} action - The action containing the new code.
-     */
+
     setCode: (state, action: PayloadAction<string>) => {
       state.code = action.payload;
     },
-    /**
-     * Set the programming language in the state.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<string>} action - The action containing the new language.
-     */
+
     setLanguage: (state, action: PayloadAction<string>) => {
       state.language = action.payload;
     },
-    /**
-     * Set the loading state.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<boolean>} action - The action containing the loading state.
-     */
+
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    /**
-     * Set the result of the code execution.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<Response>} action - The action containing the result.
-     */
+
     setResult: (state, action: PayloadAction<Response>) => {
       state.result = action.payload;
     },
-    /**
-     * Set the list of files in the state.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<File[]>} action - The action containing the new list of files.
-     */
+
     setFiles: (state, action: PayloadAction<File[]>) => {
       state.files = action.payload;
     },
-    /**
-     * Set the current file type.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<string>} action - The action containing the new file type.
-     */
+
     setFile: (state, action: PayloadAction<string>) => {
       state.file = action.payload;
     },
-    /**
-     * Set the current file ID.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<string | null>} action - The action containing the current file ID.
-     */
+
     setCurrentFile: (state, action: PayloadAction<string | null>) => {
       state.currentFile = action.payload;
     },
-    /**
-     * Set the renaming state.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<boolean>} action - The action containing the renaming state.
-     */
+  
     setRenaming: (state, action: PayloadAction<boolean>) => {
       state.isRenaming = action.payload;
     },
-    /**
-     * Set the new file name.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<string>} action - The action containing the new file name.
-     */
+
     setNewFileName: (state, action: PayloadAction<string>) => {
       state.newFileName = action.payload;
     },
-    /**
-     * Set the file ID to rename.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<string | null>} action - The action containing the file ID to rename.
-     */
+
     setFileToRename: (state, action: PayloadAction<string | null>) => {
       state.fileToRename = action.payload;
     },
-    /**
-     * Save the current file's content.
-     * @param {XCodeState} state - The current state.
-     * @param {PayloadAction<{ currentFile: string; code: string }>} action - The action containing the current file ID and code.
-     */
     saveCurrentFile: (
       state,
       action: PayloadAction<{ currentFile: string; code: string }>
