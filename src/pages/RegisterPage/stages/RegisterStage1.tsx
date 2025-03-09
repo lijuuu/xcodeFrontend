@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
+import { registerUser, clearAuthState } from "@/redux/authSlice";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ function SignupForm({
 }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { error } = useSelector((state: any) => state.xCodeAuth);
+  const { error } = useSelector((state: any) => state.auth);
   const { register, handleSubmit, formState: { errors } } = useForm<Stage1FormData>({
     resolver: zodResolver(stage1Schema),
   });

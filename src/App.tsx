@@ -5,13 +5,18 @@ import LoginForm from "@/pages/LoginPage";
 import SignupForm from "@/pages/RegisterPage/RegisterPage";
 import VerifyEmail from "@/pages/VerifyEmail";
 import Home from "./pages/Home";
-import Demo from "./pages/Demo";
 import VerifyInfo from "./pages/VerifyInfo";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
-import EditProfilePage from "./pages/EditProfilePage/EditProfilePage";
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor } from '@/redux/store';
+import AdminLoginForm from "./pages/Admin/AdminLogin";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+
 function App() {
   return (
     <>
+    <PersistGate loading={null} persistor={persistor}>
+    {/* <Provider store={store}>   */}
       <Router>
         <Routes>
           <Route path="/compiler" element={<OnlineCompilerPage />} />
@@ -19,12 +24,16 @@ function App() {
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/demo" element={<Demo />} />
           <Route path="/verify-info" element={<VerifyInfo />} />
           <Route path="/" element={<ProfilePage />} />
-          <Route path="/edit-profile" element={<EditProfilePage />} />
+
+
+          <Route path="/admin/login" element={<AdminLoginForm/>}></Route>
+          <Route path="/admin/dashboard" element={<AdminDashboard/>}></Route>
         </Routes>
       </Router>
+      {/* </Provider> */}
+      </PersistGate>
     </>
   );
 }

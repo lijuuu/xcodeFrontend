@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { loginUser, clearAuthInitialState } from "@/redux/xCodeAuth";
+import { loginUser, clearAuthState, setAuthLoading } from "@/redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
 import Loader1 from "@/components/ui/loader1";
 import SimpleHeader from "@/components/sub/AuthHeader";
 
@@ -25,14 +26,15 @@ const loginSchema = z.object({
     .max(20, "Password must be less than 20 characters"),
 });
 
-// --- Type Definition ---
 type LoginFormData = z.infer<typeof loginSchema>;
 
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 z-50">
-    <Loader1 className="w-12 h-12 text-blue-800" />
-    <div className="text-white text-xl font-coinbase-sans mt-4">Logging in...</div>
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">
+    <Loader1 className="w-12 h-12 mr-10 text-blue-800" />
+    <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
+      Logging in...
+    </div>
     <button
       onClick={onCancel}
       className="text-white text-sm font-coinbase-sans mt-4 underline hover:text-blue-800 transition-colors duration-200"
@@ -55,45 +57,49 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
     resolver: zodResolver(loginSchema),
   });
 
-  const { user, error, loading } = useSelector((state: any) => state.xCodeAuth);
+  const { userId, error, loading, userProfile, successMessage, isAuthenticated } = useSelector(
+    (state: any) => state.auth
+  );
 
   const onSubmit = (data: LoginFormData) => {
     console.log("Form Data:", data);
     dispatch(loginUser(data) as any);
   };
 
-  // Handle navigation and toast messages based on auth state
+  // Single useEffect for auth state and navigation
   useEffect(() => {
-    if (user && !error && !loading) {
-      navigate("/home");
-      toast.success("Login successful!");
-      dispatch(clearAuthInitialState());
+    console.log("Auth State:", { userId, error, loading, userProfile, successMessage, isAuthenticated });
+
+    if (isAuthenticated && userProfile?.isVerified && !loading && !error) {
+      navigate("/");
+      toast.success(successMessage || "Login successful!");
     } else if (error && !loading) {
       if (error.code === 401) {
-        navigate("/verify-email");
+        navigate("/verify-info");
         toast.info("Please verify your email address");
-        dispatch(clearAuthInitialState());
       } else {
-        toast.error(error.details || "An error occurred");
+        toast.error(error.message || "An error occurred");
       }
+      dispatch(clearAuthState());
     }
-  }, [user, error, loading, navigate, dispatch]);
 
-  // Check if user is already verified and logged in
+    // Check for existing session on mount (runs only once due to empty deps)
+  }, [userId, error, loading, userProfile, isAuthenticated, successMessage, dispatch]);
+
   useEffect(() => {
-    if (user?.isVerified && !error && !loading) {
-      navigate("/home");
-      toast.success("Already Logged In!");
+    const accessToken = Cookies.get("accessToken");
+    if (accessToken ) {
+      navigate("/");
+      toast.success("Already logged in!");
     }
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen  bg-night-black text-white ">
-      {/* Progress Bar (Static for Login) */}
+    <div className="flex flex-col min-h-screen bg-night-black text-white">
       <div className="bg-blue-800 h-2" style={{ width: "100%" }} />
-      <SimpleHeader page="/signup" name={"Sign Up"} />
+      <SimpleHeader page="/signup" name="Sign Up" />
       <div className="flex justify-center items-center flex-1">
-        {loading && <LoaderOverlay onCancel={() => dispatch(clearAuthInitialState())} />}
+        {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
         <div
           className={`w-full max-w-md bg-night-black border border-gray-600 rounded-lg shadow-lg p-6 ${className}`}
           {...props}
@@ -159,9 +165,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
               </Button>
             </form>
 
-            <div className="mt-4 text-center text-xs text-gray-400 font-coinbase-sans">
-              OR
-            </div>
+            <div className="mt-4 text-center text-xs text-gray-400 font-coinbase-sans">OR</div>
             <div className="mt-4 space-y-2">
               <Button
                 type="button"

@@ -4,11 +4,12 @@ import HeatMap from "@uiw/react-heat-map";
 import { PieChart, Pie, Cell } from "recharts";
 import imagesrc from "@/assets/triangle.png";
 import { FaGithub, FaTwitter, FaLinkedin, FaInstagram, FaMapMarkerAlt } from "react-icons/fa";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-
 // Define ProfileCardProps
 type ProfileCardProps = {
   user: any;
+  setEditModel: (editModel: boolean) => void;
 };
 
 // Dashboard stats data
@@ -169,7 +170,7 @@ const UserActivityCard = () => {
           }}
           style={{ color: "#a0aec0", backgroundColor: "transparent", fontFamily: "CoinbaseSans" }}
           monthLabels={["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]}
-          weekLabels={["Sun", "Mon", "Tue", "W  ed", "Thu", "Fri", "Sat"]}
+          weekLabels={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
         />
       </div>
     </div>
@@ -177,7 +178,9 @@ const UserActivityCard = () => {
 };
 
 // ProfileCard Component
-const ProfileCard = ({ user }: ProfileCardProps) => {
+const ProfileCard = ({ user, setEditModel }: ProfileCardProps) => {
+  const { userProfile } = user || {};
+  console.log("userProfile ", userProfile);
   const navigate = useNavigate();
   return (
     <div>
@@ -194,16 +197,16 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
               />
               <div className="container-left-1-1-1 flex flex-col justify-between space-y-1">
                 <div>
-                  <p className="text-2xl font-semibold text-blue-700 font-coinbase-display">Triangle</p>
-                  <p className="text-sm text-gray-400 font-coinbase-sans">@triangle</p>
+                  <p className="text-2xl font-semibold text-blue-700 font-coinbase-display">{userProfile?.firstName} {userProfile?.lastName}</p>
+                  <p className="text-sm text-gray-400 font-coinbase-sans mt-1">@{userProfile?.userName}</p>
+                  <p className="text-sm text-gray-400 font-coinbase-sans mt-1">{userProfile?.email}</p>
+
                 </div>
                 <p className="text-sm text-gray-400 font-coinbase-sans">Rank: 1</p>
               </div>
             </div>
             <button className="bg-blue-700 text-white w-full px-4 py-2 rounded-md text-sm font-medium font-coinbase-sans hover:bg-blue-600 transition-colors duration-200"
-            onClick={() => {
-              navigate("/edit-profile");
-            }}
+              onClick={() => setEditModel(true)}
             >
               Edit Profile
             </button>
@@ -214,26 +217,26 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-400 hover:text-blue-700 font-coinbase-sans transition-colors duration-200">
                 <FaGithub className="text-gray-400 w-4 h-4" />
-                <a href="https://github.com/triangle" target="_blank" rel="noopener noreferrer">
-                  github.com/triangle
+                <a href={userProfile?.socials?.github || "Not Specified"} target="_blank" rel="noopener noreferrer">
+                  {userProfile?.socials?.github || "Not Specified"}
                 </a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-400 hover:text-blue-700 font-coinbase-sans transition-colors duration-200">
                 <FaTwitter className="text-gray-400 w-4 h-4" />
-                <a href="https://twitter.com/triangle" target="_blank" rel="noopener noreferrer">
-                  twitter.com/triangle
+                <a href={userProfile?.socials?.twitter || "Not Specified"} target="_blank" rel="noopener noreferrer">
+                  {userProfile?.socials?.twitter || "Not Specified"}
                 </a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-400 hover:text-blue-700 font-coinbase-sans transition-colors duration-200">
                 <FaLinkedin className="text-gray-400 w-4 h-4" />
-                <a href="https://linkedin.com/triangle" target="_blank" rel="noopener noreferrer">
-                  linkedin.com/triangle
+                <a href={userProfile?.socials?.linkedin || "Not Specified"} target="_blank" rel="noopener noreferrer">
+                  {userProfile?.socials?.linkedin || "Not Specified"}
                 </a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-400 hover:text-blue-700 font-coinbase-sans transition-colors duration-200">
                 <FaInstagram className="text-gray-400 w-4 h-4" />
-                <a href="https://instagram.com/triangle" target="_blank" rel="noopener noreferrer">
-                  instagram.com/triangle
+                <a href={userProfile?.socials?.instagram || "Not Specified"} target="_blank" rel="noopener noreferrer">
+                  {userProfile?.socials?.instagram || "Not Specified"}
                 </a>
               </div>
             </div>

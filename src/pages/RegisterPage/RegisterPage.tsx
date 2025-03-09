@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { registerUser, clearAuthInitialState } from "@/redux/xCodeAuth";
+import { registerUser, clearAuthState as clearAuthInitialState } from "@/redux/authSlice";
 import Loader1 from "@/components/ui/loader1";
 import SignupForm from "./stages/RegisterStage1";
 import RegisterStage2 from "./stages/RegisterStage2";
@@ -36,15 +36,15 @@ function RegisterPage() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error, user } = useSelector((state: any) => state.xCodeAuth);
+  const { loading, error, successMessage, userId } = useSelector((state: any) => state.auth);
 
   // Redirect to verify email on successful registration
   useEffect(() => {
-    if (user && error == null) {
-      navigate("/verify-email");
-      toast.success("Email sent to verify your account");
+    if (userId && !error) {
+      navigate("/verify-info");
+      toast.success(successMessage || "Email sent to verify your account");
     }
-  }, [user, error, navigate]);
+  }, [userId, error, successMessage, navigate]);
 
   // Clear auth state on mount
   useEffect(() => {
@@ -68,13 +68,7 @@ function RegisterPage() {
   const handleStage4Submit = (data: Stage4FormData) => {
     const finalData = { ...formData, ...data };
     console.log("Final Submission Data:", finalData);
-    setLoading(true);
-    setTimeout(() => {
-      console.log("loading......");
-      setLoading(false);
-      navigate("/verify-info");
-    }, 10000);
-    dispatch(registerUser(finalData) as any);
+    dispatch(registerUser(finalData) as any); // Dispatch registerUser with final data
   };
 
   const goBack = () => {
@@ -84,9 +78,7 @@ function RegisterPage() {
   // Progress calculation
   const progress = (stage / STAGE_COUNT) * 100;
 
-  //loader
-  const [loading, setLoading] = useState(true);
-
+  // Loader state now synced with Redux loading
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">
       <Loader1 className="w-12 h-12 mr-10 text-blue-800" />
@@ -102,10 +94,16 @@ function RegisterPage() {
     </div>
   );
 
+  // Show error or success toast based on state
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || "Registration failed");
+    }
+  }, [error]);
 
   return (
     <div className="flex flex-col min-h-screen bg-night-black text-white relative">
-      {loading && <LoaderOverlay onCancel={() => setLoading(false)} />}
+      {loading && <LoaderOverlay onCancel={() => {}} />} {/* Disable cancel for now */}
       <div className="w-full bg-gray-700 h-2">
         <div
           className="bg-blue-800 h-2 transition-all duration-300 ease-in-out"
@@ -149,5 +147,3 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
-
-

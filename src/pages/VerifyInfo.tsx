@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import image from "../assets/email.png";
+import { resendEmail } from "@/redux/authSlice";
+import { useDispatch } from "react-redux";
 
 const VerifyInfo = () => {
-  
+  const dispatch = useDispatch();
   const [times, setTimes] = useState(10);
 
   useEffect(() => {
@@ -20,11 +22,7 @@ const VerifyInfo = () => {
   }, [times]);
 
   const handleResendEmail = () => {
-    const timeout = setTimeout(() => {
-      
-      setTimes(10);
-    }, 10000);
-    return () => clearTimeout(timeout);
+   dispatch(resendEmail({email: "test@test.com"}) as any)
   }
 
   return (
