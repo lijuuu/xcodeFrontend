@@ -4,6 +4,7 @@ import HeatMap from "@uiw/react-heat-map";
 import { PieChart, Pie, Cell } from "recharts";
 import imagesrc from "@/assets/triangle.png";
 import { FaGithub, FaTwitter, FaLinkedin, FaInstagram, FaMapMarkerAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 // Define ProfileCardProps
 type ProfileCardProps = {
@@ -168,7 +169,7 @@ const UserActivityCard = () => {
           }}
           style={{ color: "#a0aec0", backgroundColor: "transparent", fontFamily: "CoinbaseSans" }}
           monthLabels={["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]}
-          weekLabels={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
+          weekLabels={["Sun", "Mon", "Tue", "W  ed", "Thu", "Fri", "Sat"]}
         />
       </div>
     </div>
@@ -177,6 +178,7 @@ const UserActivityCard = () => {
 
 // ProfileCard Component
 const ProfileCard = ({ user }: ProfileCardProps) => {
+  const navigate = useNavigate();
   return (
     <div>
       <div className="container-main bg-night-black min-h-screen flex flex-col md:flex-row px-6 py-8 gap-6">
@@ -198,7 +200,11 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
                 <p className="text-sm text-gray-400 font-coinbase-sans">Rank: 1</p>
               </div>
             </div>
-            <button className="bg-blue-700 text-white w-full px-4 py-2 rounded-md text-sm font-medium font-coinbase-sans hover:bg-blue-600 transition-colors duration-200">
+            <button className="bg-blue-700 text-white w-full px-4 py-2 rounded-md text-sm font-medium font-coinbase-sans hover:bg-blue-600 transition-colors duration-200"
+            onClick={() => {
+              navigate("/edit-profile");
+            }}
+            >
               Edit Profile
             </button>
             <div className="container-left-1-2 mt-6 space-y-2">

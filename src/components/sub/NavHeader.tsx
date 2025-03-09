@@ -25,7 +25,7 @@ const NavHeader = ({ pages, name }: { pages: { name: string; path: string }[]; n
     <header className="flex justify-between items-center px-6 py-4 bg-night-black text-white w-full relative z-10">
       {/* Logo */}
       <div className="text-2xl font-bold font-coinbase-display hover:cursor-crosshair">
-        xcode <span className="text-gray-500 text-[10px] font-coinbase-sans"> special mention for @rizvan</span>
+        xcode <span className="text-gray-500 text-[10px] font-coinbase-sans"> beta</span>
       </div>
 
       {/* Hamburger Menu for Mobile */}
