@@ -4,7 +4,12 @@ import axios from "axios"; // For API requests
 import useCountries from "@/hooks/useCountries";
 import Cookies from "js-cookie";
 import { lang } from "@/constants/lang";
+import { useDispatch } from "react-redux";
+import { getUser } from "@/redux/authSlice";
+import { toast } from "sonner";
+
 const EditProfileCard = ({ user, setEditModel }: { user: any, setEditModel: (editModel: boolean) => void }) => {
+  const dispatch = useDispatch();
   // Form state
   const [userName, setUserName] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -36,28 +41,28 @@ const EditProfileCard = ({ user, setEditModel }: { user: any, setEditModel: (edi
 
   console.log("user ", user);
 
-  // Mock Cloudinary upload function (replace with actual implementation)
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "your_upload_preset");
-    const response = await fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await response.json();
-    return data.secure_url;
-  };
+  // // Mock Cloudinary upload function (replace with actual implementation)
+  // const uploadToCloudinary = async (file: File): Promise<string> => {
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("upload_preset", "your_upload_preset");
+  //   const response = await fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
+  //     method: "POST",
+  //     body: formData,
+  //   });
+  //   const data = await response.json();
+  //   return data.secure_url;
+  // };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let avatarURL = null;
-      if (avatarFile) {
-        avatarURL = await uploadToCloudinary(avatarFile);
-        await axios.patch(`http://localhost:7000/api/v1/users/profile/image`, { avatarURL });
-      }
+      // let avatarURL = null;
+      // if (avatarFile) {
+      //   avatarURL = await uploadToCloudinary(avatarFile);
+      //   await axios.patch(`http://localhost:7000/api/v1/users/profile/image`, { avatarURL });
+      // }
 
       const profileData = {
         userName,
@@ -75,11 +80,12 @@ const EditProfileCard = ({ user, setEditModel }: { user: any, setEditModel: (edi
         }
       });
 
-      alert("Profile updated successfully"); // Replace with toast notification
-      setEditModel(false); // Close modal on success
+      toast.success("Profile updated successfully");
+      dispatch(getUser() as any);
+      setEditModel(false); 
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile"); // Replace with error toast
+      toast.error("Failed to update profile");
     }
   };
 
@@ -146,7 +152,7 @@ const EditProfileCard = ({ user, setEditModel }: { user: any, setEditModel: (edi
             >
               <option value="">Select Language</option>
               {Object.entries(lang).map(([key, value]) => (
-                <option key={key} value={key}>{value}</option>
+                <option key={key} value={key}>{value.value}</option>
               ))}
               {/* Add more languages as needed */}
             </select>
@@ -192,7 +198,7 @@ const EditProfileCard = ({ user, setEditModel }: { user: any, setEditModel: (edi
             />
           </div>
 
-          {/* Profile Image Upload */}
+          {/* Profile Image Upload
           <div>
             <label className="block text-sm font-medium text-white">Profile Image</label>
             <input
@@ -201,7 +207,7 @@ const EditProfileCard = ({ user, setEditModel }: { user: any, setEditModel: (edi
               onChange={(e) => setAvatarFile(e.target.files ? e.target.files[0] : null)}
               className="w-full bg-gray-700 p-3 rounded mt-1 text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-700 file:text-white hover:file:bg-blue-800"
             />
-          </div>
+          </div> */}
 
           {/* Submit Button */}
           <button

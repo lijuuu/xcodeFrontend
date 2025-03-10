@@ -1,11 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import useCountries from "@/hooks/useCountries";
+import { useState, useEffect } from "react";
+import { lang } from "@/constants/lang";
 
 // --- Form Schema ---
 const stage3Schema = z.object({
@@ -13,17 +16,7 @@ const stage3Schema = z.object({
   profession: z.string().min(1, "Profession is required"),
 });
 
-// --- Type Definition ---
 type Stage3FormData = z.infer<typeof stage3Schema>;
-
-// --- Sample Data ---
-const countries = [
-  { code: "US", name: "United States", flag: "🇺🇸" },
-  { code: "UK", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "FR", name: "France", flag: "🇫🇷" },
-  { code: "DE", name: "Germany", flag: "🇩🇪" },
-  { code: "JP", name: "Japan", flag: "🇯🇵" },
-];
 
 const professions = [
   "Software Engineer",
@@ -35,6 +28,69 @@ const professions = [
   "Product Manager",
   "UI/UX Designer",
 ];
+
+// Updated CountriesWithFlags Component
+const CountriesWithFlags = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) => {
+  const { countries, fetchCountries } = useCountries();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    fetchCountries();
+  }, [fetchCountries]);
+
+  const handleSelect = (name: string) => {
+    onChange(name); // Pass the country name to the form
+    setDropdownOpen(false);
+  };
+
+  const selectedCountryData = Object.values(countries).find((c) => c.name === value);
+
+  return (
+    <div className="relative w-full font-coinbase-sans">
+      <Label className="block text-sm font-medium text-white">Country</Label>
+      <div
+        className="flex items-center justify-between bg-gray-700 text-white p-3 rounded mt-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-700"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+      >
+        {value && selectedCountryData ? (
+          <div className="flex items-center space-x-2">
+            <img
+              src={selectedCountryData.image}
+              alt={`${selectedCountryData.name} flag`}
+              className="w-6 h-6"
+            />
+            <span>{selectedCountryData.name}</span>
+          </div>
+        ) : (
+          <span>Select a country</span>
+        )}
+        <span>▼</span>
+      </div>
+      {dropdownOpen && (
+        <div className="absolute w-full bg-gray-800 text-white mt-2 max-h-60 overflow-y-auto rounded shadow-lg z-10">
+          {Object.values(countries)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((country) => (
+              <div
+                key={country.name}
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleSelect(country.name)}
+              >
+                <img src={country.image} alt={`${country.name} flag`} className="w-6 h-6" />
+                <span>{country.name}</span>
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 function RegisterStage3({
   email,
@@ -49,8 +105,17 @@ function RegisterStage3({
   onBack: () => void;
   setFormData: (data: Stage3FormData) => void;
 }) {
-  const { register, handleSubmit, formState: { errors } } = useForm<Stage3FormData>({
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Stage3FormData>({
     resolver: zodResolver(stage3Schema),
+    defaultValues: {
+      country: "",
+      profession: "",
+    },
   });
 
   const onSubmit = (data: Stage3FormData) => {
@@ -79,21 +144,13 @@ function RegisterStage3({
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
-              <Label htmlFor="country" className="text-sm text-white font-coinbase-sans">
-                Country
-              </Label>
-              <select
-                id="country"
-                {...register("country")}
-                className="w-full bg-night-black border border-gray-600 text-white font-coinbase-sans p-2 rounded-md"
-              >
-                <option value="">Select a country</option>
-                {countries.map((country) => (
-                  <option key={country.code} value={country.name}>
-                    {country.flag} {country.name}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                name="country"
+                control={control}
+                render={({ field }) => (
+                  <CountriesWithFlags value={field.value} onChange={field.onChange} />
+                )}
+              />
               {errors.country && (
                 <p className="text-xs text-error-red font-coinbase-sans">{errors.country.message}</p>
               )}
@@ -115,9 +172,7 @@ function RegisterStage3({
                 ))}
               </select>
               {errors.profession && (
-                <p className="text-xs text-error-red font-coinbase-sans">
-                  {errors.profession.message}
-                </p>
+                <p className="text-xs text-error-red font-coinbase-sans">{errors.profession.message}</p>
               )}
             </div>
             <div className="flex justify-between space-x-2">

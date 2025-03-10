@@ -37,12 +37,13 @@ interface LoginUserResponse {
 interface ApiResponse {
   success: boolean;
   status: number;
-  payload: LoginUserResponse | UserProfile;
+  payload: LoginUserResponse | UserProfile | { message: string; expiryAt?: number } | { message: string };
 }
 
 interface AuthState {
   userId: string | null;
   isAuthenticated: boolean;
+  email: string | null;
   loading: boolean;
   error: { message: string; code?: number } | null;
   accessToken: string | null;
@@ -51,6 +52,7 @@ interface AuthState {
   userProfile: UserProfile | null;
   lastResendTimestamp: number | null;
   resendCooldown: boolean;
+  expiryAt: number | null;
 }
 
 const loadState = (): Partial<AuthState> => {
@@ -64,9 +66,27 @@ const loadState = (): Partial<AuthState> => {
   }
 };
 
+const saveState = (state: AuthState) => {
+  try {
+    const serializedState = JSON.stringify({
+      userId: state.userId,
+      isAuthenticated: state.isAuthenticated,
+      email: state.email,
+      userProfile: state.userProfile,
+      lastResendTimestamp: state.lastResendTimestamp,
+      resendCooldown: state.resendCooldown,
+      expiryAt: state.expiryAt,
+    });
+    localStorage.setItem("auth", serializedState);
+  } catch (err) {
+    console.error("Failed to save state to localStorage", err);
+  }
+};
+
 const initialState: AuthState = {
   userId: null,
   isAuthenticated: false,
+  email: null,
   loading: false,
   error: null,
   successMessage: null,
@@ -75,11 +95,12 @@ const initialState: AuthState = {
   userProfile: null,
   lastResendTimestamp: null,
   resendCooldown: false,
+  expiryAt: null,
   ...loadState(),
 };
 
 export const registerUser = createAsyncThunk<
-  { success: boolean; status: number; payload: { userID: string; message: string } },
+  { success: boolean; status: number; payload: { userID: string; message: string; email: string } },
   { firstName: string; lastName: string; email: string; password: string; confirmPassword: string },
   { rejectValue: { message: string } }
 >("auth/registerUser", async (userData, { rejectWithValue }) => {
@@ -92,7 +113,7 @@ export const registerUser = createAsyncThunk<
 });
 
 export const resendEmail = createAsyncThunk<
-  { success: boolean; status: number; payload: { message: string } },
+  { success: boolean; status: number; payload: { message: string; expiryAt: number } },
   { email: string },
   { rejectValue: { message: string } }
 >("auth/resendEmail", async ({ email }, { rejectWithValue, getState }) => {
@@ -117,6 +138,23 @@ export const resendEmail = createAsyncThunk<
   }
 });
 
+export const verifyEmail = createAsyncThunk<
+  { success: boolean; status: number; payload: { message: string } },
+  { email: string; token: string },
+  { rejectValue: { message: string } }
+>("auth/verifyEmail", async ({ email, token }, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.get("/auth/verify", {
+      params: { email, token },
+    });
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue({
+      message: error.response?.data?.error?.message || "Email verification failed",
+    });
+  }
+});
+
 export const getUser = createAsyncThunk<
   ApiResponse,
   void,
@@ -133,6 +171,23 @@ export const getUser = createAsyncThunk<
     return rejectWithValue({ message: error.response?.data?.error?.message || "Failed to get user" });
   }
 });
+
+export const updateProfileImage = createAsyncThunk<
+  { success: boolean; status: number; payload: { message: string; avatarURL: string } },
+  { avatarURL: string },
+  { rejectValue: { message: string } }
+>("auth/updateProfileImage", async ({ avatarURL }, { rejectWithValue, dispatch }) => {
+  try {
+    const response = await axiosInstance.patch("/users/profile/image", { avatarURL });
+    dispatch(getUser());
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue({
+      message: error.response?.data?.error?.message || "Failed to update profile image",
+    });
+  }
+});
+
 export const loginUser = (credentials: { email: string; password: string }) => async (dispatch: any): Promise<void> => {
   dispatch(setAuthLoading(true));
   try {
@@ -152,23 +207,22 @@ export const loginUser = (credentials: { email: string; password: string }) => a
     });
     Cookies.set("refreshToken", data.refreshToken, { expires: 7, secure: true, sameSite: "Strict" });
 
-    // Add a 1.5-second delay before dispatching loginSuccess
     setTimeout(() => {
       dispatch(loginSuccess(data));
-      dispatch(setAuthLoading(false)); // Reset loading after the delay
-    }, 1500); // 1500ms = 1.5 seconds
+      dispatch(setAuthLoading(false));
+    }, 1500);
   } catch (error: any) {
     const errorResponse = error.response?.data;
     dispatch(
       loginFailure({
         message: errorResponse?.error?.message || error.message || "Login failed",
-        code: error.response?.status || 500,
+        code: errorResponse?.status || 500,
       })
     );
-    dispatch(setAuthLoading(false)); // Reset loading on error
+    dispatch(setAuthLoading(false));
   }
-  // Remove the finally block since loading is handled in the setTimeout and catch
 };
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -180,6 +234,7 @@ const authSlice = createSlice({
       state.userId = null;
       state.loading = false;
       state.isAuthenticated = false;
+      state.email = null;
       state.error = null;
       state.successMessage = null;
       state.accessToken = null;
@@ -187,8 +242,10 @@ const authSlice = createSlice({
       state.userProfile = null;
       state.lastResendTimestamp = null;
       state.resendCooldown = false;
+      state.expiryAt = null;
       Cookies.remove("accessToken");
       Cookies.remove("refreshToken");
+      saveState(state);
     },
     clearMessages: (state) => {
       state.error = null;
@@ -210,13 +267,16 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken;
       state.userId = action.payload.userID;
       state.userProfile = action.payload.userProfile;
+      state.email = action.payload.userProfile.email;
       state.isAuthenticated = action.payload.userProfile?.isVerified ?? false;
       state.successMessage = action.payload.message;
       state.error = null;
+      saveState(state);
     },
     loginFailure: (state, action: PayloadAction<{ message: string; code?: number }>) => {
       console.log("Login Failure", action.payload);
       state.loading = false;
+      state.email = state.email;
       state.error = action.payload;
       state.successMessage = null;
     },
@@ -232,12 +292,15 @@ const authSlice = createSlice({
         registerUser.fulfilled,
         (
           state,
-          action: PayloadAction<{ success: boolean; status: number; payload: { userID: string; message: string } }>
+          action: PayloadAction<{ success: boolean; status: number; payload: { userID: string; message: string; email: string } }>
         ) => {
           state.loading = false;
           state.userId = action.payload.payload.userID;
+          state.email = action.payload.payload.email;
+          Cookies.set("emailtobeverified", action.payload.payload.email, { expires: 7, secure: true, sameSite: "Strict" });
           state.successMessage = action.payload.payload.message;
           state.isAuthenticated = false;
+          saveState(state);
         }
       )
       .addCase(registerUser.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
@@ -251,14 +314,34 @@ const authSlice = createSlice({
       })
       .addCase(
         resendEmail.fulfilled,
-        (state, action: PayloadAction<{ success: boolean; status: number; payload: { message: string } }>) => {
+        (state, action: PayloadAction<{ success: boolean; status: number; payload: { message: string; expiryAt: number } }>) => {
           state.loading = false;
           state.successMessage = action.payload.payload.message;
           state.lastResendTimestamp = Date.now();
           state.resendCooldown = true;
+          state.expiryAt = action.payload.payload.expiryAt;
+          saveState(state);
         }
       )
       .addCase(resendEmail.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+        state.loading = false;
+        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
+      })
+      .addCase(verifyEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(
+        verifyEmail.fulfilled,
+        (state, action: PayloadAction<{ success: boolean; status: number; payload: { message: string } }>) => {
+          state.loading = false;
+          state.successMessage = action.payload.payload.message;
+          state.isAuthenticated = true;
+          saveState(state);
+        }
+      )
+      .addCase(verifyEmail.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
         state.loading = false;
         state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
       })
@@ -273,9 +356,11 @@ const authSlice = createSlice({
           const userProfile = action.payload.payload as UserProfile;
           state.userProfile = userProfile;
           state.userId = userProfile.userID;
+          state.email = userProfile.email;
           state.isAuthenticated = userProfile.isVerified ?? false;
           state.successMessage = "User profile fetched successfully";
           state.error = null;
+          saveState(state);
         } else {
           state.error = { message: "Invalid response from getUser" };
         }
@@ -283,11 +368,33 @@ const authSlice = createSlice({
       .addCase(getUser.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
         state.loading = false;
         state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
-        Cookies.remove("accessToken");
-        Cookies.remove("refreshToken");
         state.isAuthenticated = false;
         state.userProfile = null;
         state.userId = null;
+        state.email = null;
+        Cookies.remove("accessToken");
+        Cookies.remove("refreshToken");
+        saveState(state);
+      })
+      .addCase(updateProfileImage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(
+        updateProfileImage.fulfilled,
+        (state, action: PayloadAction<{ success: boolean; status: number; payload: { message: string; avatarURL: string } }>) => {
+          state.loading = false;
+          state.successMessage = action.payload.payload.message;
+          if (state.userProfile) {
+            state.userProfile.avatarURL = action.payload.payload.avatarURL;
+          }
+          saveState(state);
+        }
+      )
+      .addCase(updateProfileImage.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+        state.loading = false;
+        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
       });
   },
 });
@@ -295,6 +402,5 @@ const authSlice = createSlice({
 export const { setAuthLoading, clearAuthState, clearMessages, updateResendCooldown, loginSuccess, loginFailure } =
   authSlice.actions;
 export default authSlice.reducer;
-
 
 export type { UserProfile };

@@ -11,7 +11,8 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { persistor } from '@/redux/store';
 import AdminLoginForm from "./pages/Admin/AdminLogin";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 function App() {
   return (
     <>
@@ -26,6 +27,9 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/verify-info" element={<VerifyInfo />} />
           <Route path="/" element={<ProfilePage />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path ="/reset-password" element={<ResetPassword />}></Route>
 
 
           <Route path="/admin/login" element={<AdminLoginForm/>}></Route>

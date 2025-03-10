@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import Cookies from "js-cookie";
 // --- Form Schema ---
 const stage1Schema = z.object({
   email: z.string().email("Use a valid email address"),
@@ -35,6 +35,7 @@ function SignupForm({
   });
 
   const onSubmit = (data: Stage1FormData) => {
+    Cookies.set("emailtobeverified", data.email, { expires: 7, secure: true, sameSite: "Strict" });
     setFormData(data);
     onNext();
   };

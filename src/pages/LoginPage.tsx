@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { loginUser, clearAuthState, setAuthLoading } from "@/redux/authSlice";
+import { loginUser, clearAuthState, setAuthLoading, resendEmail } from "@/redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -52,14 +52,16 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
-  const { userId, error, loading, userProfile, successMessage, isAuthenticated } = useSelector(
-    (state: any) => state.auth
-  );
+  const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
+
+  // Watch the email field from the form
+  const formEmail = watch("email");
 
   const onSubmit = (data: LoginFormData) => {
     console.log("Form Data:", data);
@@ -68,13 +70,16 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
 
   // Single useEffect for auth state and navigation
   useEffect(() => {
-    console.log("Auth State:", { userId, error, loading, userProfile, successMessage, isAuthenticated });
+    console.log("Auth State:", { error, loading, userProfile, successMessage, isAuthenticated, formEmail });
 
     if (isAuthenticated && userProfile?.isVerified && !loading && !error) {
       navigate("/");
+      navigate(0)
       toast.success(successMessage || "Login successful!");
     } else if (error && !loading) {
       if (error.code === 401) {
+        Cookies.set("emailtobeverified", formEmail); 
+        // dispatch(resendEmail({ email: formEmail }) as any);
         navigate("/verify-info");
         toast.info("Please verify your email address");
       } else {
@@ -82,17 +87,16 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
       }
       dispatch(clearAuthState());
     }
+  }, [error, loading, userProfile, isAuthenticated, successMessage, formEmail, dispatch, navigate]);
 
-    // Check for existing session on mount (runs only once due to empty deps)
-  }, [userId, error, loading, userProfile, isAuthenticated, successMessage, dispatch]);
-
+  // Check for existing session on mount
   useEffect(() => {
     const accessToken = Cookies.get("accessToken");
-    if (accessToken ) {
+    if (accessToken) {
       navigate("/");
       toast.success("Already logged in!");
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="flex flex-col min-h-screen bg-night-black text-white">
@@ -136,7 +140,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
                     Password
                   </Label>
                   <a
-                    href="#"
+                    href="/forgot-password"
                     className="ml-auto text-sm text-gray-400 font-coinbase-sans hover:underline hover:text-blue-800 transition-colors duration-200"
                   >
                     Forgot password?
