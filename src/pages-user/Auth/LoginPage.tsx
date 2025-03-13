@@ -73,7 +73,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
     console.log("Auth State:", { error, loading, userProfile, successMessage, isAuthenticated, formEmail });
 
     if (isAuthenticated && userProfile?.isVerified && !loading && !error) {
-      navigate("/");
+      navigate("/home");
       navigate(0)
       toast.success(successMessage || "Login successful!");
     } else if (error && !loading) {
@@ -93,10 +93,10 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
   useEffect(() => {
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
-      navigate("/");
-      toast.success("Already logged in!");
+      navigate("/home");
+      toast.success("Logged in!");
     }
-  }, [navigate]);
+  }, [loading]);
 
   return (
     <div className="flex flex-col min-h-screen bg-night-black text-white">

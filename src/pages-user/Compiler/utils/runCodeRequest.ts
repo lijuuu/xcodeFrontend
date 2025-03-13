@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { setLoading, setResult } from '@/redux/xCodeCompiler';
-import { Response } from '@/pages/CompilerPage/CompilerPage';
+import { Response } from '@/pages-user/CompilerPage/CompilerPage';
 import ROUTES from '@/constants/routeconst';
 
 const environment = import.meta.env.VITE_ENVIRONMENT;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import image from "../assets/email.png";
+import image from "@/assets/email.png";
 import { resendEmail, setAuthLoading } from "@/redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
@@ -58,6 +58,12 @@ const VerifyInfo = () => {
       dispatch(resendEmail({ email: emailVerified }) as any);
     }
   };
+
+  useEffect(() => {
+    if (Cookies.get("accessToken")) {
+      navigate("/home");
+    }
+  }, []);
 
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">

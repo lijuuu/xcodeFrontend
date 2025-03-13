@@ -9,9 +9,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useDispatch, useSelector } from 'react-redux';
 import { setCode, setCurrentFile, setFile, setLanguage } from '@/redux/xCodeCompiler';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import Output from '@/pages/CompilerPage/components/Output';
-import CodeEditor from '@/pages/CompilerPage/components/CodeEditor';
-import FileSystem from '@/pages/CompilerPage/components/FileSystem';
+import Output from '@/pages-user/Compiler/components/Output';
+import CodeEditor from '@/pages-user/Compiler/components/CodeEditor';
+import FileSystem from '@/pages-user/Compiler/components/FileSystem';
 import {
   ResizablePanel,
   ResizablePanelGroup,
@@ -108,7 +108,7 @@ function OnlineCompilerPage() {
               <div className="flex items-center space-x-2">
                 <CodeIcon className="h-5 w-5" />
                 <CardTitle className="text-xl font-bold"> xcode <span className="text-xs text-muted-foreground"> -- building a better compiler</span></CardTitle>
-              </div>  
+              </div>
               <div className="flex items-center gap-2">
                 <div className="hidden md:block">
                   <Tabs>
@@ -124,7 +124,7 @@ function OnlineCompilerPage() {
                           className={cn(
                             "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
                             "hover:bg-muted/50",
-                            { 'bg-primary text-primary-foreground': lang.value === language } // Set active state based on current language
+                            { 'bg-primary text-primary-foreground': lang.value === language } 
                           )}
                         >
                           <span className="mr-1">{lang.icon}</span> {lang.label}

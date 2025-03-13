@@ -137,21 +137,11 @@
   }
 
   body {
-    @apply bg-night-black text-foreground;
+    @apply bg-black text-foreground;
   }
 }
 
 
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-}
 
 @font-face {
   font-family: 'Bakerline';

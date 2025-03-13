@@ -4,10 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { registerUser, clearAuthState as clearAuthInitialState } from "@/redux/authSlice";
 import Loader1 from "@/components/ui/loader1";
-import SignupForm from "./stages/RegisterStage1";
-import RegisterStage2 from "./stages/RegisterStage2";
-import RegisterStage3 from "./stages/RegisterStage3";
-import RegisterStage4 from "./stages/RegisterStage4";
+import SignupForm from "./components/RegisterStage1";
+import RegisterStage2 from "./components/RegisterStage2";
+import RegisterStage3 from "./components/RegisterStage3";
+import RegisterStage4 from "./components/RegisterStage4";
 import AuthHeader from "@/components/sub/AuthHeader";
 
 // --- Constants ---

@@ -46,7 +46,11 @@ const useCloudinaryUpload = () => {
     }
   };
 
-  return { uploadImage, loading, error };
+  const cancelUpload = () => {
+    setLoading(false);
+  };
+
+  return { uploadImage, loading, error, cancelUpload };
 };
 
 export default useCloudinaryUpload;

@@ -21,7 +21,7 @@ const VerifyEmail = () => {
     const token = queryParams.get("token");
     if (!email || !token) {
       toast.error("Invalid verification link. Please try again.");
-      setTimeout(() => navigate(ROUTES.LOGIN), 2000);
+      setTimeout(() => navigate("/login"), 2000);
       return;
     }
 

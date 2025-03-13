@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { File } from '@/pages/CompilerPage/CompilerPage';
+import { File } from '@/pages-user/Compiler/CompilerPage';
 import { SaveIcon, PlayIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Editor } from '@monaco-editor/react';
@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setCode } from '@/redux/xCodeCompiler';
 import { useTheme } from '@/hooks/theme-provider';
 import { cn } from '@/lib/utils';
-import { languages } from '@/pages/CompilerPage/CompilerPage';
+import { languages } from '@/pages-user/Compiler/CompilerPage';
 import { RootState } from '@/redux/store';
 import { AppDispatch } from '@/redux/store';
 import { runCode, saveCurrentFile } from '@/redux/xCodeCompiler';

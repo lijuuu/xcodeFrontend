@@ -1,19 +1,19 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { File, Response } from '@/pages/CompilerPage/CompilerPage';
+import { File, Response } from '@/pages-user/Compiler/CompilerPage';
 
 // Define state type
 interface XCodeState {
   code: string;
-  language: string; 
-  loading: boolean; 
-  file: string; 
-  result: Response; 
-  files: File[];  
-  currentFile: string | null; 
-  isRenaming: boolean; 
-  newFileName: string; 
-  fileToRename: string | null; 
+  language: string;
+  loading: boolean;
+  file: string;
+  result: Response;
+  files: File[];
+  currentFile: string | null;
+  isRenaming: boolean;
+  newFileName: string;
+  fileToRename: string | null;
 }
 
 // Initial state
@@ -115,7 +115,7 @@ const xCodeCompilerSlice = createSlice({
     setCurrentFile: (state, action: PayloadAction<string | null>) => {
       state.currentFile = action.payload;
     },
-  
+
     setRenaming: (state, action: PayloadAction<boolean>) => {
       state.isRenaming = action.payload;
     },

@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { File } from '@/pages/CompilerPage/CompilerPage';
+import { File } from '@/pages-user/Compiler/CompilerPage';
 import { RootState, AppDispatch } from '@/redux/store';
 import {
   setCode,
