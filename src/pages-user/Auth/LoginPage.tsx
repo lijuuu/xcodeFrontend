@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 import Loader1 from "@/components/ui/loader1";
 import SimpleHeader from "@/components/sub/AuthHeader";
+import axios from "axios";
+import { handleError, handleInfo } from "@/components/sub/ErrorToast";
 
 // --- Form Schema ---
 const loginSchema = z.object({
@@ -24,20 +26,21 @@ const loginSchema = z.object({
       "Password must have uppercase, lowercase, number, and special character"
     )
     .max(20, "Password must be less than 20 characters"),
+  code: z.string().min(6, "Code must be 6 characters").optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">
-    <Loader1 className="w-12 h-12 mr-10 text-blue-800" />
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
+    <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
     <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
       Logging in...
     </div>
     <button
       onClick={onCancel}
-      className="text-white text-sm font-coinbase-sans mt-4 underline hover:text-blue-800 transition-colors duration-200"
+      className="text-gray-400 text-sm font-coinbase-sans mt-4 underline hover:text-[#3CE7B2] transition-colors duration-200"
     >
       Cancel
     </button>
@@ -60,6 +63,8 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
 
   const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
 
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
   // Watch the email field from the form
   const formEmail = watch("email");
 
@@ -74,16 +79,17 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
 
     if (isAuthenticated && userProfile?.isVerified && !loading && !error) {
       navigate("/home");
-      navigate(0)
-      toast.success(successMessage || "Login successful!");
+      navigate(0);
+      toast.success(successMessage || "Login successful!", { style: { background: "#1D1D1D", color: "#3CE7B2" } });
     } else if (error && !loading) {
-      if (error.code === 401) {
-        Cookies.set("emailtobeverified", formEmail); 
-        // dispatch(resendEmail({ email: formEmail }) as any);
+      if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
+        Cookies.set("emailtobeverified", formEmail);
         navigate("/verify-info");
-        toast.info("Please verify your email address");
+        console.log(error);
+        handleInfo(error);
+        // toast.info("Please verify your email address", { style: { background: "#1D1D1D", color: "#FFFFFF" } });
       } else {
-        toast.error(error.message || "An error occurred");
+        toast.error(error.message || "An error occurred", { style: { background: "#1D1D1D", color: "#FFFFFF" } });
       }
       dispatch(clearAuthState());
     }
@@ -94,18 +100,35 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
       navigate("/home");
-      toast.success("Logged in!");
+      toast.success("Logged in!", { style: { background: "#1D1D1D", color: "#3CE7B2" } });
     }
   }, [loading]);
 
+  useEffect(() => {
+    if (formEmail && formEmail.includes("@") && formEmail.includes(".")) {
+      axios
+        .get(`http://localhost:7000/api/v1/auth/2fa/status?email=${formEmail}`)
+        .then((res: any) => {
+          setTwoFactorEnabled(res.data.payload.isEnabled);
+        })
+        .catch((err: any) => {
+          setTwoFactorEnabled(false);
+          console.log(err);
+        });
+    } else {
+      setTwoFactorEnabled(false);
+    }
+  }, [formEmail]);
+
+
   return (
-    <div className="flex flex-col min-h-screen bg-night-black text-white">
-      <div className="bg-blue-800 h-2" style={{ width: "100%" }} />
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white">
+      <div className="bg-[#3CE7B2] h-2" style={{ width: "100%" }} />
       <SimpleHeader page="/signup" name="Sign Up" />
       <div className="flex justify-center items-center flex-1">
-        {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
+        { loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
         <div
-          className={`w-full max-w-md bg-night-black border border-gray-600 rounded-lg shadow-lg p-6 ${className}`}
+          className={`w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl shadow-lg p-6 hover:border-gray-700 transition-all duration-300 ${className}`}
           {...props}
         >
           <div className="space-y-1">
@@ -126,11 +149,11 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  className="w-full bg-night-black border border-gray-600 text-white font-coinbase-sans rounded-md p-2"
+                  className="w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white font-coinbase-sans rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] transition-all duration-200"
                   {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm font-coinbase-sans">{errors.email.message}</p>
+                  <p className="text-[#3CE7B2] text-sm font-coinbase-sans">{errors.email.message}</p>
                 )}
               </div>
 
@@ -141,7 +164,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
                   </Label>
                   <a
                     href="/forgot-password"
-                    className="ml-auto text-sm text-gray-400 font-coinbase-sans hover:underline hover:text-blue-800 transition-colors duration-200"
+                    className="ml-auto text-sm text-gray-400 font-coinbase-sans hover:text-[#3CE7B2] transition-colors duration-200"
                   >
                     Forgot password?
                   </a>
@@ -149,20 +172,36 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
                 <Input
                   id="password"
                   type="password"
-                  className="w-full bg-night-black border border-gray-600 text-white font-coinbase-sans rounded-md p-2"
+                  className="w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white font-coinbase-sans rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] transition-all duration-200"
                   {...register("password")}
                 />
                 {errors.password && (
-                  <p className="text-red-500 text-sm font-coinbase-sans">{errors.password.message}</p>
+                  <p className="text-[#3CE7B2] text-start mt-2 text-sm font-coinbase-sans">{errors.password.message}</p>
                 )}
               </div>
+              {twoFactorEnabled && (
+                <div className="mt-4 text-center text-sm mb-4 font-coinbase-sans text-gray-400">
+                  <p>Two-factor authentication is enabled for your account.</p>
+                  <p>Please enter the code from your authenticator app.</p>
+                  <Input
+                    id="code"
+                    type="text"
+                    placeholder="Enter the code"
+                    {...register("code")}
+                    className="w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white font-coinbase-sans rounded-md p-2 mt-4 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] transition-all duration-200"
+                  />
+                  {errors.code && (
+                    <p className="text-[#3CE7B2] text-sm font-coinbase-sans mt-4">{errors.code.message}</p>
+                  )}
+                </div>
+              )}
               {error && !loading && (
-                <p className="text-red-500 text-sm font-coinbase-sans">Login failed</p>
+                <p className="text-[#3CE7B2] text-sm font-coinbase-sans">Login failed</p>
               )}
 
               <Button
                 type="submit"
-                className="w-full bg-blue-800 text-white hover:bg-blue-700 py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
+                className="w-full bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
                 disabled={loading}
               >
                 {loading ? "Logging in..." : "Login"}
@@ -173,13 +212,13 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
             <div className="mt-4 space-y-2">
               <Button
                 type="button"
-                className="w-full h-12 bg-gray-600 text-md text-white hover:bg-gray-500 py-3 rounded-[100px] flex items-center justify-center font-coinbase-sans"
+                className="w-full h-12 bg-[#2C2C2C] text-md text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center font-coinbase-sans transition-all duration-200"
               >
                 Sign up with Google
               </Button>
               <Button
                 type="button"
-                className="w-full h-12 bg-gray-600 text-md text-white hover:bg-gray-500 py-3 rounded-[100px] flex items-center justify-center font-coinbase-sans"
+                className="w-full h-12 bg-[#2C2C2C] text-md text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center font-coinbase-sans transition-all duration-200"
               >
                 Sign up with Github
               </Button>
@@ -193,7 +232,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
                 <button
                   type="button"
                   onClick={() => navigate("/signup")}
-                  className="font-medium underline underline-offset-4 hover:text-blue-800 transition-colors duration-200"
+                  className="font-medium underline underline-offset-4 hover:text-[#3CE7B2] transition-colors duration-200"
                 >
                   Sign up
                 </button>

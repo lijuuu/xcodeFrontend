@@ -1,5 +1,4 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,8 +6,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import useCountries from "@/hooks/useCountries";
-import { useState, useEffect } from "react";
-import { lang } from "@/constants/lang";
 
 // --- Form Schema ---
 const stage3Schema = z.object({
@@ -29,7 +26,6 @@ const professions = [
   "UI/UX Designer",
 ];
 
-// Updated CountriesWithFlags Component
 const CountriesWithFlags = ({
   value,
   onChange,
@@ -45,7 +41,7 @@ const CountriesWithFlags = ({
   }, [fetchCountries]);
 
   const handleSelect = (name: string) => {
-    onChange(name); // Pass the country name to the form
+    onChange(name);
     setDropdownOpen(false);
   };
 
@@ -55,7 +51,7 @@ const CountriesWithFlags = ({
     <div className="relative w-full font-coinbase-sans">
       <Label className="block text-sm font-medium text-white">Country</Label>
       <div
-        className="flex items-center justify-between bg-gray-700 text-white p-3 rounded mt-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-700"
+        className="flex items-center justify-between bg-[#2C2C2C] text-white p-3 rounded-md mt-1 cursor-pointer hover:border-[#3CE7B2] border border-[#2C2C2C] transition-all duration-200"
         onClick={() => setDropdownOpen(!dropdownOpen)}
       >
         {value && selectedCountryData ? (
@@ -73,13 +69,13 @@ const CountriesWithFlags = ({
         <span>▼</span>
       </div>
       {dropdownOpen && (
-        <div className="absolute w-full bg-gray-800 text-white mt-2 max-h-60 overflow-y-auto rounded shadow-lg z-10">
+        <div className="absolute w-full bg-[#1D1D1D] text-white mt-2 max-h-60 overflow-y-auto rounded-xl shadow-lg z-10 border border-[#2C2C2C]">
           {Object.values(countries)
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((country) => (
               <div
                 key={country.name}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-700 cursor-pointer"
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-[#2C2C2C] cursor-pointer transition-colors duration-200"
                 onClick={() => handleSelect(country.name)}
               >
                 <img src={country.image} alt={`${country.name} flag`} className="w-6 h-6" />
@@ -124,14 +120,13 @@ function RegisterStage3({
     onNext();
   };
 
-  const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col bg-night-black text-white">
+    <div className="flex flex-col bg-[#121212] text-white">
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg mt-24",
+            "w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700 transition-all duration-300",
             className
           )}
           {...props}
@@ -152,7 +147,7 @@ function RegisterStage3({
                 )}
               />
               {errors.country && (
-                <p className="text-xs text-error-red font-coinbase-sans">{errors.country.message}</p>
+                <p className="text-xs text-[#3CE7B2] font-coinbase-sans">{errors.country.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -162,7 +157,7 @@ function RegisterStage3({
               <select
                 id="profession"
                 {...register("profession")}
-                className="w-full bg-night-black border border-gray-600 text-white font-coinbase-sans p-2 rounded-md"
+                className="w-full bg-[#2C2C2C] border border-[#2C2C2C font-coinbase-sans p-2 rounded-md hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] transition-all duration-200"
               >
                 <option value="">Select a profession</option>
                 {professions.map((profession) => (
@@ -172,20 +167,20 @@ function RegisterStage3({
                 ))}
               </select>
               {errors.profession && (
-                <p className="text-xs text-error-red font-coinbase-sans">{errors.profession.message}</p>
+                <p className="text-xs text-[#3CE7B2] font-coinbase-sans">{errors.profession.message}</p>
               )}
             </div>
             <div className="flex justify-between space-x-2">
               <Button
                 type="button"
                 onClick={onBack}
-                className="w-1/2 bg-gray-600 text-white hover:bg-gray-500 py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
+                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-1/2 bg-blue-800 text-white hover:bg-blue-700 py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
+                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
               >
                 Next
               </Button>

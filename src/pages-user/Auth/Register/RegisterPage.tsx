@@ -9,7 +9,8 @@ import RegisterStage2 from "./components/RegisterStage2";
 import RegisterStage3 from "./components/RegisterStage3";
 import RegisterStage4 from "./components/RegisterStage4";
 import AuthHeader from "@/components/sub/AuthHeader";
-
+import Cookies from "js-cookie";
+import { handleError } from "@/components/sub/ErrorToast";
 // --- Constants ---
 const STAGE_COUNT = 4;
 
@@ -42,7 +43,10 @@ function RegisterPage() {
   useEffect(() => {
     if (userId && !error) {
       navigate("/verify-info");
-      toast.success(successMessage || "Email sent to verify your account");
+      toast.success(successMessage || "Verify your email to continue", {
+        style: { background: "#1D1D1D", color: "#3CE7B2" },
+      });
+      dispatch(clearAuthInitialState());
     }
   }, [userId, error, successMessage, navigate]);
 
@@ -68,7 +72,7 @@ function RegisterPage() {
   const handleStage4Submit = (data: Stage4FormData) => {
     const finalData = { ...formData, ...data };
     console.log("Final Submission Data:", finalData);
-    dispatch(registerUser(finalData) as any); // Dispatch registerUser with final data
+    dispatch(registerUser(finalData) as any);
   };
 
   const goBack = () => {
@@ -78,35 +82,35 @@ function RegisterPage() {
   // Progress calculation
   const progress = (stage / STAGE_COUNT) * 100;
 
-  // Loader state now synced with Redux loading
+  // Loader Overlay Component
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">
-      <Loader1 className="w-12 h-12 mr-10 text-blue-800" />
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
+      <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
       <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
         Creating your account
       </div>
       <button
         onClick={onCancel}
-        className="text-white text-sm font-coinbase-sans mt-4 underline hover:text-blue-800 transition-colors duration-200"
+        className="text-gray-400 text-sm font-coinbase-sans mt-4 underline hover:text-[#3CE7B2] transition-colors duration-200"
       >
         Cancel
       </button>
     </div>
   );
 
-  // Show error or success toast based on state
+  // Show error toast based on state
   useEffect(() => {
     if (error) {
-      toast.error(error.message || "Registration failed");
+      handleError(error);
     }
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-night-black text-white relative">
-      {loading && <LoaderOverlay onCancel={() => {}} />} {/* Disable cancel for now */}
-      <div className="w-full bg-gray-700 h-2">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative">
+      {loading && <LoaderOverlay onCancel={() => {}} />}
+      <div className="w-full bg-[#2C2C2C] h-2">
         <div
-          className="bg-blue-800 h-2 transition-all duration-300 ease-in-out"
+          className="bg-[#3CE7B2] h-2 transition-all duration-300 ease-in-out"
           style={{ width: `${progress}%` }}
         />
       </div>

@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
 import { Button } from '@/components/ui/button';
 import { Download, Settings, Code as CodeIcon, Menu, Maximize2, Minimize2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useDispatch, useSelector } from 'react-redux';
@@ -90,7 +90,7 @@ function OnlineCompilerPage() {
     const handleResize = () => {
       const newIsMobile = window.innerWidth < 768;
       setIsMobile(newIsMobile);
-
+      
       // Reset panel layout when switching between mobile and desktop
       if (newIsMobile !== isMobile) {
         setPanelLayout({
@@ -110,16 +110,16 @@ function OnlineCompilerPage() {
     const currentLang = languages.find(l => l.value === language);
     const extension = currentLang?.file || 'txt';
     const filename = `code.${extension}`;
-
+    
     const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-
+    
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-
+    
     // Cleanup
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -153,7 +153,7 @@ function OnlineCompilerPage() {
               <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">compiler</span>
             </div>
           </div>
-
+          
           <div className="flex items-center gap-1 md:gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -164,8 +164,8 @@ function OnlineCompilerPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border/50">
                 {languages.map((lang) => (
-                  <DropdownMenuItem
-                    key={lang.value}
+                  <DropdownMenuItem 
+                    key={lang.value} 
                     onClick={() => {
                       dispatch(setLanguage(lang.value));
                       dispatch(setFile(lang.file));
@@ -177,29 +177,29 @@ function OnlineCompilerPage() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
+            
             {isMobile && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-muted"
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 hover:bg-muted" 
                 onClick={toggleOutputPanel}
                 title={outputExpanded ? "Show Editor" : "Show Output"}
               >
                 {outputExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
             )}
-
-            <Button
-              variant="ghost"
-              size="icon"
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
               className="h-8 w-8 hover:bg-muted"
               onClick={handleDownloadCode}
               title="Download Code"
             >
               <Download className="h-4 w-4" />
             </Button>
-
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
@@ -217,18 +217,18 @@ function OnlineCompilerPage() {
             </DropdownMenu>
           </div>
         </div>
-
+        
         <div className="flex-grow overflow-hidden bg-background">
           {isMobile ? (
             <div className="h-full">
-              <div
-                className="h-full transition-all duration-300"
+              <div 
+                className="h-full transition-all duration-300" 
                 style={{ display: outputExpanded ? 'none' : 'block' }}
               >
                 <CodeEditor className="h-full" />
               </div>
-              <div
-                className="h-full transition-all duration-300"
+              <div 
+                className="h-full transition-all duration-300" 
                 style={{ display: outputExpanded ? 'block' : 'none' }}
               >
                 <Output className="h-full" />

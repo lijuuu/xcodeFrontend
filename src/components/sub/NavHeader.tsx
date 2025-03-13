@@ -2,46 +2,31 @@ import { clearAuthState } from "@/redux/authSlice";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { LogOut } from 'lucide-react'; 
-
+import LogoutModal from "./Logout";
+import { LogOutIcon } from "lucide-react";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
 // Custom Modal Component for Logout
-const LogoutModal = ({
-  isOpen,
-  onClose,
-  onConfirm
+
+const defaultPages = [
+  { name: "Home", path: "/home" },
+  { name: "Profile", path: "/" },
+  { name: "Problems", path: "/problems" },
+  { name: "Compiler", path: "/compiler" },
+  { name: "Leaderboard", path: "/leaderboard" },
+  { name: "Chat", path: "/chat" },
+  { name: "Settings", path: "/settings" },
+];
+
+const NavHeader = ({
+  pages = defaultPages,
+  name,
+  logout,
 }: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
+  pages?: { name: string; path: string }[];
+  name: string;
+  logout: boolean;
 }) => {
-  if (!isOpen) return null;
-
-  return ( 
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-      <div className="bg-night-black border border-gray-700 rounded-lg p-6 w-[90%] max-w-md">
-        <h2 className="text-xl font-bold text-white mb-4">Confirm Logout</h2>
-        <p className="text-gray-300 mb-6">Are you sure you want to logout?</p>
-
-        <div className="flex justify-end space-x-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: string }[]; name: string, logout: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -49,16 +34,11 @@ const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: strin
   const dispatch = useDispatch();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // Update currentPage based on location pathname
   useEffect(() => {
     const path = location.pathname;
-    console.log("window.location.pathname ", path);
     setCurrentPage(path);
-    console.log("currentPage ", currentPage);
-    console.log("pages ", pages);
   }, [location.pathname]);
 
-  // Toggle mobile menu
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -67,29 +47,46 @@ const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: strin
     setShowLogoutModal(true);
   };
 
-  const confirmLogout = () => {
-    dispatch(clearAuthState());
-    navigate("/login");
-    setShowLogoutModal(false);
+  const confirmLogout = async () => {
+    try {
+      // Clear cookies
+      Cookies.remove('accessToken');
+      Cookies.remove('refreshToken');
+
+      // Clear redux state
+      dispatch(clearAuthState());
+
+      // Show success message
+      toast.success('Logged out successfully');
+
+      // Navigate to login
+      navigate("/login");
+    } catch (error) {
+      toast.error('Failed to logout');
+      console.error('Logout error:', error);
+    } finally {
+      setShowLogoutModal(false);
+    }
   };
 
   return (
     <>
-      <header className="flex justify-between items-center px-6 py-4 bg-[#121212] text-white w-full relative z-10">
+      <header className="flex justify-between items-center px-4 py-2 bg-[#121212] text-white w-full relative z-10">
         {/* Logo */}
-        <div className="text-2xl font-bold font-coinbase-display hover:cursor-crosshair">
-          xcode <span className="text-gray-500 text-[10px] font-coinbase-sans"> beta</span>
+        <div className="text-xl font-bold font-coinbase-display hover:text-[#3CE7B2] hover:cursor-crosshair transition-colors duration-200">
+          xcode{" "}
+          <span className="text-gray-400 text-[8px] font-coinbase-sans">beta</span>
         </div>
 
         {/* Hamburger Menu for Mobile */}
         <div className="md:hidden">
           <button
             onClick={toggleMobileMenu}
-            className="text-white focus:outline-none"
+            className="text-white focus:outline-none hover:text-[#3CE7B2] transition-colors duration-200"
             aria-label="Toggle menu"
           >
             <svg
-              className="w-6 h-6"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -108,35 +105,35 @@ const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: strin
         {/* Navigation Links */}
         <div
           className={`${isMobileMenuOpen ? "flex flex-col" : "hidden"
-            } md:flex md:items-center md:space-x-12 absolute md:static top-16 left-0 w-full md:w-auto bg-[#121212] md:bg-transparent p-4 md:p-0 transition-all duration-300 ease-in-out z-20 ${isMobileMenuOpen ? "block  min-h-screen" : ""
+            } md:flex md:items-center md:space-x-8 absolute md:static top-12 left-0 w-full md:w-auto bg-[#121212] md:bg-transparent p-4 md:p-0 transition-all duration-300 ease-in-out z-20 ${isMobileMenuOpen ? "block min-h-screen" : ""
             }`}
         >
           {pages.map((page) => (
             <div
               key={page.name}
-              className={`text-3xl mt-2 md:text-base font-coinbase-sans hover:text-emerald-300 ml-0 md:ml-24 hover:cursor-pointer ${currentPage === page.path ? "text-emerald-300" : ""
-                } py-2 md:py-0`}
+              className={`text-xl md:text-sm font-coinbase-sans hover:text-[#3CE7B2] ml-0 md:ml-16 hover:cursor-pointer ${currentPage === page.path ? "text-[#3CE7B2]" : "text-white"
+                } py-2 md:py-0 transition-colors duration-200`}
               onClick={() => {
                 navigate(page.path);
-                if (isMobileMenuOpen) setIsMobileMenuOpen(false); // Close menu on mobile click
+                if (isMobileMenuOpen) setIsMobileMenuOpen(false);
               }}
-
             >
               {page.name}
             </div>
           ))}
 
-          {/* Add Logout Button */}
-          <button
+          {/* Logout Button */}
+          <div
+            className="text-xl md:text-sm font-coinbase-sans hover:text-[#3CE7B2] ml-0 md:ml-16 hover:cursor-pointer text-white py-2 md:py-0 transition-colors duration-200 flex items-center gap-2"
             onClick={handleLogoutClick}
-            className="flex items-center space-x-2 text-red-500 hover:text-red-400 transition-colors"
           >
-            <LogOut size={18} />
+            <LogOutIcon className="w-4 h-4" />
             <span>Logout</span>
-          </button>
+          </div>
         </div>
       </header>
 
+      {/* Logout Modal */}
       <LogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}

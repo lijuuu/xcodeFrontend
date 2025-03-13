@@ -30,7 +30,7 @@ const SetUpTwoFactor = () => {
       alert('Please enter an email')
       return
     }
-    const response = await axios.get(`http://localhost:7000/api/v1/auth/2fa/setup?email=${email}`)
+    const response = await axios.get(`http://localhost:7000/api/v1/auth/2fa/status?email=${email}`)
     setStatusResponse(JSON.stringify(response.data))
   }
 

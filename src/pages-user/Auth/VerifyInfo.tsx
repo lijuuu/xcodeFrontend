@@ -22,7 +22,6 @@ const VerifyInfo = () => {
       navigate("/login");
     } else {
       setEmailVerified(email);
-      // Trigger initial resend email to get expiryAt
       // dispatch(resendEmail({ email }) as any);
     }
   }, [dispatch, navigate]);
@@ -36,8 +35,8 @@ const VerifyInfo = () => {
         setRemainingTime(timeLeft > 0 ? timeLeft : 0);
       };
 
-      updateCountdown(); // Initial call
-      const interval = setInterval(updateCountdown, 1000); // Update every second
+      updateCountdown(); 
+      const interval = setInterval(updateCountdown, 1000); 
 
       return () => clearInterval(interval);
     }

@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,7 +29,11 @@ function RegisterStage2({
   onBack: () => void;
   setFormData: (data: Stage2FormData) => void;
 }) {
-  const { register, handleSubmit, formState: { errors } } = useForm<Stage2FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Stage2FormData>({
     resolver: zodResolver(stage2Schema),
   });
 
@@ -39,15 +42,13 @@ function RegisterStage2({
     onNext();
   };
 
-  const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col bg-night-black text-white">
-
+    <div className="flex flex-col bg-[#121212] text-white">
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            "w-full max-w-md bg-night-black border border-gray-600 rounded-lg p-6 shadow-lg mt-24",
+            "w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700 transition-all duration-300",
             className
           )}
           {...props}
@@ -69,14 +70,12 @@ function RegisterStage2({
                 placeholder="John"
                 {...register("firstName")}
                 className={cn(
-                  "w-full bg-night-black border border-gray-600 text-white font-coinbase-sans",
-                  errors.firstName ? "border-error-red" : ""
+                  "w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white font-coinbase-sans rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] transition-all duration-200",
+                  errors.firstName ? "border-[#3CE7B2]" : ""
                 )}
               />
               {errors.firstName && (
-                <p className="text-xs text-error-red font-coinbase-sans">
-                  {errors.firstName.message}
-                </p>
+                <p className="text-xs text-[#3CE7B2] font-coinbase-sans">{errors.firstName.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -89,25 +88,25 @@ function RegisterStage2({
                 placeholder="Doe"
                 {...register("lastName")}
                 className={cn(
-                  "w-full bg-night-black border border-gray-600 text-white font-coinbase-sans",
-                  errors.lastName ? "border-error-red" : ""
+                  "w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white font-coinbase-sans rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] transition-all duration-200",
+                  errors.lastName ? "border-[#3CE7B2]" : ""
                 )}
               />
               {errors.lastName && (
-                <p className="text-xs text-error-red font-coinbase-sans">{errors.lastName.message}</p>
+                <p className="text-xs text-[#3CE7B2] font-coinbase-sans">{errors.lastName.message}</p>
               )}
             </div>
             <div className="flex justify-between space-x-2">
               <Button
                 type="button"
                 onClick={onBack}
-                className="w-1/2 bg-gray-600 text-white hover:bg-gray-500 py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
+                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-1/2 bg-blue-800 text-white hover:bg-blue-700 py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
+                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md transition-colors duration-200 font-coinbase-sans"
               >
                 Next
               </Button>

@@ -64,14 +64,6 @@ const Home = () => {
     <>
       <NavHeader
         logout={true}
-        pages={[
-          { name: "Problems", path: "/problems" },
-          { name: "Compiler", path: "/compiler" },
-          { name: "Leaderboard", path: "/leaderboard" },
-          { name: "Chat", path: "/chat" },
-          { name: "Profile", path: "/" },
-          { name: "Home", path: "/home" },
-        ]}
         name="Home"
       />
       {/* Recent Submissions Card */}

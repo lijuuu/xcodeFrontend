@@ -29,7 +29,7 @@ const ProfilePageOverview = () => {
   return (
     <div className='min-h-screen w-full bg-night-black'>
 
-      <NavHeader logout={true} pages={[{ name: "Home", path: "/home" },{ name: "Profile", path: "/" },{ name: "Problems", path: "/problems" }, { name: "Compiler", path: "/compiler" }, { name: "Leaderboard", path: "/leaderboard" }, { name: "Chat", path: "/chat" }, { name: "Settings", path: "/settings" }]} name="Profile" />
+      <NavHeader logout={true}  name="Profile" />
       {loading ? <div>Loading...</div> : <ProfileCard user={userProfile} />}
     </div>
   )

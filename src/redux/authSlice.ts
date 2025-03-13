@@ -1,6 +1,7 @@
 import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
+import { errorMessages } from "@/constants/errortypes";
 
 interface Socials {
   twitter?: string;
@@ -45,7 +46,7 @@ interface AuthState {
   isAuthenticated: boolean;
   email: string | null;
   loading: boolean;
-  error: { message: string; code?: number } | null;
+  error: { message: string; code?: number; type?: string } | null;
   accessToken: string | null;
   refreshToken: string | null;
   successMessage: string | null;
@@ -102,20 +103,26 @@ const initialState: AuthState = {
 export const registerUser = createAsyncThunk<
   { success: boolean; status: number; payload: { userID: string; message: string; email: string } },
   { firstName: string; lastName: string; email: string; password: string; confirmPassword: string },
-  { rejectValue: { message: string } }
+  { rejectValue: { type: string; message: string; code?: number } }
 >("auth/registerUser", async (userData, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.post("/auth/register", userData);
     return response.data;
   } catch (error: any) {
-    return rejectWithValue({ message: error.response?.data?.error?.message || "Registration failed" });
+    const type = error.response?.data?.error?.type || "ERR_REG_CREATION_FAILED";
+    const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Registration failed";
+    return rejectWithValue({
+      type,
+      message,
+      code: error.response?.status,
+    });
   }
 });
 
 export const resendEmail = createAsyncThunk<
   { success: boolean; status: number; payload: { message: string; expiryAt: number } },
   { email: string },
-  { rejectValue: { message: string } }
+  { rejectValue: { type?: string; message: string; code?: number } }
 >("auth/resendEmail", async ({ email }, { rejectWithValue, getState }) => {
   const state = getState() as { auth: AuthState };
   const lastResend = state.auth.lastResendTimestamp;
@@ -132,8 +139,12 @@ export const resendEmail = createAsyncThunk<
     const response = await axiosInstance.get("/auth/verify/resend", { params: { email } });
     return response.data;
   } catch (error: any) {
+    const type = error.response?.data?.error?.type || "ERR_EMAIL_RESEND_FAILED";
+    const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Failed to resend email verification";
     return rejectWithValue({
-      message: error.response?.data?.error?.message || "Failed to resend email verification",
+      type,
+      message,
+      code: error.response?.status,
     });
   }
 });
@@ -141,7 +152,7 @@ export const resendEmail = createAsyncThunk<
 export const verifyEmail = createAsyncThunk<
   { success: boolean; status: number; payload: { message: string } },
   { email: string; token: string },
-  { rejectValue: { message: string } }
+  { rejectValue: { type?: string; message: string; code?: number } }
 >("auth/verifyEmail", async ({ email, token }, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get("/auth/verify", {
@@ -149,8 +160,12 @@ export const verifyEmail = createAsyncThunk<
     });
     return response.data;
   } catch (error: any) {
+    const type = error.response?.data?.error?.type || "ERR_VERIFY_TOKEN_INVALID";
+    const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Email verification failed";
     return rejectWithValue({
-      message: error.response?.data?.error?.message || "Email verification failed",
+      type,
+      message,
+      code: error.response?.status,
     });
   }
 });
@@ -158,7 +173,7 @@ export const verifyEmail = createAsyncThunk<
 export const getUser = createAsyncThunk<
   ApiResponse,
   void,
-  { rejectValue: { message: string } }
+  { rejectValue: { type?: string; message: string; code?: number } }
 >("auth/getUser", async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get("/users/profile");
@@ -166,29 +181,39 @@ export const getUser = createAsyncThunk<
     return response.data as ApiResponse;
   } catch (error: any) {
     console.error("Get User Error:", error);
+    const type = error.response?.data?.error?.type || "ERR_PROFILE_NOT_FOUND";
+    const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Failed to get user";
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
-    return rejectWithValue({ message: error.response?.data?.error?.message || "Failed to get user" });
+    return rejectWithValue({
+      type,
+      message,
+      code: error.response?.status,
+    });
   }
 });
 
 export const updateProfileImage = createAsyncThunk<
   { success: boolean; status: number; payload: { message: string; avatarURL: string } },
   { avatarURL: string },
-  { rejectValue: { message: string } }
+  { rejectValue: { type?: string; message: string; code?: number } }
 >("auth/updateProfileImage", async ({ avatarURL }, { rejectWithValue, dispatch }) => {
   try {
     const response = await axiosInstance.patch("/users/profile/image", { avatarURL });
     dispatch(getUser());
     return response.data;
   } catch (error: any) {
+    const type = error.response?.data?.error?.type || "ERR_PROFILE_IMAGE_UPDATE_FAILED";
+    const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Failed to update profile image";
     return rejectWithValue({
-      message: error.response?.data?.error?.message || "Failed to update profile image",
+      type,
+      message,
+      code: error.response?.status,
     });
   }
 });
 
-export const loginUser = (credentials: { email: string; password: string }) => async (dispatch: any): Promise<void> => {
+export const loginUser = (credentials: { email: string; password: string; code?: string }) => async (dispatch: any): Promise<void> => {
   dispatch(setAuthLoading(true));
   try {
     const response = await axiosInstance.post("/auth/login", credentials);
@@ -211,12 +236,16 @@ export const loginUser = (credentials: { email: string; password: string }) => a
       dispatch(loginSuccess(data));
       dispatch(setAuthLoading(false));
     }, 1500);
+    
   } catch (error: any) {
     const errorResponse = error.response?.data;
+    const type = errorResponse?.error?.type || "ERR_LOGIN_CRED_WRONG";
+    const message = errorMessages[type as keyof typeof errorMessages] || errorResponse?.error?.message || error.message || "Login failed";
     dispatch(
       loginFailure({
-        message: errorResponse?.error?.message || error.message || "Login failed",
+        message,
         code: errorResponse?.status || 500,
+        type,
       })
     );
     dispatch(setAuthLoading(false));
@@ -273,7 +302,7 @@ const authSlice = createSlice({
       state.error = null;
       saveState(state);
     },
-    loginFailure: (state, action: PayloadAction<{ message: string; code?: number }>) => {
+    loginFailure: (state, action: PayloadAction<{ message: string; code?: number; type?: string }>) => {
       console.log("Login Failure", action.payload);
       state.loading = false;
       state.email = state.email;
@@ -297,15 +326,14 @@ const authSlice = createSlice({
           state.loading = false;
           state.userId = action.payload.payload.userID;
           state.email = action.payload.payload.email;
-          Cookies.set("emailtobeverified", action.payload.payload.email, { expires: 7, secure: true, sameSite: "Strict" });
           state.successMessage = action.payload.payload.message;
           state.isAuthenticated = false;
           saveState(state);
         }
       )
-      .addCase(registerUser.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+      .addCase(registerUser.rejected, (state, action: PayloadAction<{ type: string; message: string; code?: number } | undefined>) => {
         state.loading = false;
-        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
+        state.error = action.payload || { type: "ERR_UNKNOWN", message: "Unknown error" };
       })
       .addCase(resendEmail.pending, (state) => {
         state.loading = true;
@@ -323,9 +351,9 @@ const authSlice = createSlice({
           saveState(state);
         }
       )
-      .addCase(resendEmail.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+      .addCase(resendEmail.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
         state.loading = false;
-        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
+        state.error = action.payload || { type: "ERR_UNKNOWN", message: "Unknown error" };
       })
       .addCase(verifyEmail.pending, (state) => {
         state.loading = true;
@@ -341,9 +369,9 @@ const authSlice = createSlice({
           saveState(state);
         }
       )
-      .addCase(verifyEmail.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+      .addCase(verifyEmail.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
         state.loading = false;
-        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
+        state.error = action.payload || { type: "ERR_UNKNOWN", message: "Unknown error" };
       })
       .addCase(getUser.pending, (state) => {
         state.loading = true;
@@ -362,12 +390,12 @@ const authSlice = createSlice({
           state.error = null;
           saveState(state);
         } else {
-          state.error = { message: "Invalid response from getUser" };
+          state.error = { type: "ERR_INVALID_RESPONSE", message: "Invalid response from getUser" };
         }
       })
-      .addCase(getUser.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+      .addCase(getUser.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
         state.loading = false;
-        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
+        state.error = action.payload || { type: "ERR_UNKNOWN", message: "Unknown error" };
         state.isAuthenticated = false;
         state.userProfile = null;
         state.userId = null;
@@ -392,9 +420,9 @@ const authSlice = createSlice({
           saveState(state);
         }
       )
-      .addCase(updateProfileImage.rejected, (state, action: PayloadAction<{ message: string } | undefined>) => {
+      .addCase(updateProfileImage.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
         state.loading = false;
-        state.error = action.payload ? { message: action.payload.message } : { message: "Unknown error" };
+        state.error = action.payload || { type: "ERR_UNKNOWN", message: "Unknown error" };
       });
   },
 });
