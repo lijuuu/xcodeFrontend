@@ -1,5 +1,5 @@
 import React from "react";
-import OnlineCompilerPage from "@/pages-user/Compiler/CompilerPage";
+import OnlineCompilerPage from "@/pages-common/Compiler/CompilerPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginForm from "@/pages-user/Auth/LoginPage";
 import SignupForm from "@/pages-user/Register/RegisterPage";
@@ -13,14 +13,14 @@ import AdminLoginForm from "./pages-admin/AdminLogin";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import ForgotPassword from "./pages-user/Auth/ForgotPassword";
 import ResetPassword from "./pages-user/Auth/ResetPassword";
-import AddProblems from "./pages-user/Problem/AddProblems";
-import SetUpTwoFactor from "./pages-user/Profile/components/SetUpTwoFactor";
+import AddProblems from "@/pages-user/Problem/AddProblems";
+import SetUpTwoFactor from "@/pages-user/Profile/components/SetUpTwoFactor";
+import NotFound from "@/pages-common/NotFound";
 
 function App() {
   return (
     <>
       <PersistGate loading={null} persistor={persistor}>
-        {/* <Provider store={store}>   */}
         <Router>
           <Routes>
             <Route path="/compiler" element={<OnlineCompilerPage />} />
@@ -39,6 +39,8 @@ function App() {
             <Route path="/admin/login" element={<AdminLoginForm />}></Route>
             <Route path="/admin/dashboard" element={<AdminDashboard />}></Route>
             <Route path="/admin/addproblems" element={<AddProblems />}></Route>
+
+            <Route path="*" element={<NotFound />}></Route>
           </Routes>
         </Router>
         {/* </Provider> */}

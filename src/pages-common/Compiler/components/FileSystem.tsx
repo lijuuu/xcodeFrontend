@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { File } from '@/pages-user/Compiler/CompilerPage';
+import { File } from '@/pages-common/Compiler/CompilerPage';
 import { RootState, AppDispatch } from '@/redux/store';
 import {
   setCode,
@@ -160,21 +160,23 @@ const FileSystem: React.FC = () => {
   };
 
   return (
-    <Sidebar variant="sidebar" collapsible="offcanvas" className="bg-gray-900 text-white">
+    <Sidebar variant="sidebar" collapsible="offcanvas" className="bg-muted/20 text-foreground border-r border-border/50">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg font-semibold">Files</SidebarGroupLabel>
-          <span className="text-xs text-gray-400 mb-2 ml-2">Ctrl+B to Hide/Unhide</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={createNewFile}
-            className="hover:bg-gray-700"
-          >
-            <PlusIcon className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center justify-between p-2">
+            <SidebarGroupLabel className="text-lg font-semibold">Files</SidebarGroupLabel>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={createNewFile}
+              className="hover:bg-muted rounded-full"
+            >
+              <PlusIcon className="h-4 w-4" />
+            </Button>
+          </div>
+          <span className="text-xs text-muted-foreground mb-2 ml-2 block">Ctrl+B to Hide/Unhide</span>
           <SidebarGroupContent>
-            <ScrollArea className="h-[calc(90vh-130px)] overflow-x-hidden overflow-y-auto">
+            <ScrollArea className="h-[calc(90vh-130px)]">
               <AnimatePresence>
                 {files.length > 0 ? (
                   files.map((file: File) => (
@@ -184,19 +186,18 @@ const FileSystem: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -5 }}
                       transition={{ duration: 0.2 }}
-                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-gray-700 ${currentFile === file.id ? 'bg-gray-600' : ''
-                        }`}
+                      className={`group flex items-center justify-between p-2 rounded text-sm cursor-pointer hover:bg-muted ${currentFile === file.id ? 'bg-muted/50' : ''}`}
                       onClick={() => setCurrentFileFn(file.id)}
                     >
                       <div className="flex items-center">
-                        <FileIcon className="h-4 w-4 mr-2" />
-                        <span className="text-xs w-12">{file.name}</span>
+                        <FileIcon className="h-4 w-4 mr-2 text-primary" />
+                        <span className="text-xs truncate max-w-[150px]">{file.name}</span>
                       </div>
                       <div className="flex space-x-1 opacity-0 group-hover:opacity-100">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-5 w-5 hover:bg-gray-700"
+                          className="h-5 w-5 hover:bg-muted/50"
                           onClick={(e) => {
                             e.stopPropagation();
                             startRenameFile(file.id);
@@ -207,7 +208,7 @@ const FileSystem: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-5 w-5 hover:bg-gray-700"
+                          className="h-5 w-5 hover:bg-muted/50"
                           onClick={(e) => {
                             e.stopPropagation();
                             deleteFile(file.id);
@@ -219,7 +220,7 @@ const FileSystem: React.FC = () => {
                     </motion.div>
                   ))
                 ) : (
-                  <div className="text-gray-400 text-center py-4 text-xs">
+                  <div className="text-muted-foreground text-center py-4 text-xs">
                     No files yet. Create a new file to get started.
                   </div>
                 )}
@@ -229,9 +230,8 @@ const FileSystem: React.FC = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Rename Dialog */}
       <Dialog open={isRenaming} onOpenChange={(open) => !open && dispatch(setRenaming(false))}>
-        <DialogContent className="sm:max-w-md bg-gray-800 text-white">
+        <DialogContent className="sm:max-w-md bg-background border-border/50 text-foreground">
           <DialogHeader>
             <DialogTitle>Rename File</DialogTitle>
           </DialogHeader>
@@ -240,7 +240,7 @@ const FileSystem: React.FC = () => {
               value={newFileName}
               onChange={handleFileNameChange}
               placeholder="Enter new filename"
-              className="w-full bg-gray-700 text-white placeholder-gray-400"
+              className="w-full bg-muted border-border/50 text-foreground placeholder-muted-foreground"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && completeRename()}
             />
@@ -250,47 +250,16 @@ const FileSystem: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => dispatch(setRenaming(false))}
-              className="border-gray-600 text-gray-400 hover:bg-gray-700"
+              className="border-border/50 text-foreground hover:bg-muted"
             >
               Cancel
             </Button>
-            <Button onClick={completeRename} className="bg-gray-600 hover:bg-gray-500">
+            <Button onClick={completeRename} className="bg-primary hover:bg-primary/90">
               Rename
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Unsaved Changes Alert */}
-      {/* <Dialog open={showUnsavedAlert} onOpenChange={setShowUnsavedAlert}>
-        <DialogContent className="sm:max-w-md bg-gray-800 text-white">
-          <DialogHeader>
-            <DialogTitle>Unsaved Changes</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p>You have unsaved changes. Please save or discard them before creating a new file.</p>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowUnsavedAlert(false)}
-              className="border-gray-600 text-gray-400 hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                dispatch(setCode('')); // Discard changes
-                setShowUnsavedAlert(false);
-                createNewFile(); // Retry after discarding
-              }}
-              className="bg-red-600 hover:bg-red-500"
-            >
-              Discard
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
     </Sidebar>
   );
 };

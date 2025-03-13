@@ -10,6 +10,7 @@
     --gray-600: #374151;
     --gray-400: #9CA3AF;
     --error-red: #EF4444;
+
     --white: #FFFFFF;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -43,7 +44,11 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --dark-green-900: #182422;
+    --dark-green-800: #164F45;
+    --dark-green-700: #1D7D6A;
+    --accent-green: #3CE7B2;
   }
 
   .dark {
@@ -236,4 +241,20 @@
   src: url('/src/fonts/Coinbase-Text/Coinbase_Text-Bold-web-1.32.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
+}
+
+.bg-dark-green-900 {
+  background-color: var(--dark-green-900);
+}
+
+.bg-dark-green-800 {
+  background-color: var(--dark-green-800);
+}
+
+.bg-dark-green-700 {
+  background-color: var(--dark-green-700);
+}
+
+.bg-accent-green {
+  background-color: var(--accent-green);
 }

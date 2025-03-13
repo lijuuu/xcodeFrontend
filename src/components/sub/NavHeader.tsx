@@ -2,7 +2,7 @@ import { clearAuthState } from "@/redux/authSlice";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { LogOut } from 'lucide-react'; // Import logout icon
+import { LogOut } from 'lucide-react'; 
 
 // Custom Modal Component for Logout
 const LogoutModal = ({
@@ -56,7 +56,7 @@ const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: strin
     setCurrentPage(path);
     console.log("currentPage ", currentPage);
     console.log("pages ", pages);
-  }, [location.pathname]); // Depend on location.pathname to update on route change
+  }, [location.pathname]);
 
   // Toggle mobile menu
   const toggleMobileMenu = () => {
@@ -75,7 +75,7 @@ const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: strin
 
   return (
     <>
-      <header className="flex justify-between items-center px-6 py-4 bg-night-black text-white w-full relative z-10">
+      <header className="flex justify-between items-center px-6 py-4 bg-[#121212] text-white w-full relative z-10">
         {/* Logo */}
         <div className="text-2xl font-bold font-coinbase-display hover:cursor-crosshair">
           xcode <span className="text-gray-500 text-[10px] font-coinbase-sans"> beta</span>
@@ -108,13 +108,13 @@ const NavHeader = ({ pages, name, logout }: { pages: { name: string; path: strin
         {/* Navigation Links */}
         <div
           className={`${isMobileMenuOpen ? "flex flex-col" : "hidden"
-            } md:flex md:items-center md:space-x-24 absolute md:static top-16 left-0 w-full md:w-auto bg-night-black md:bg-transparent p-4 md:p-0 transition-all duration-300 ease-in-out z-20 ${isMobileMenuOpen ? "block  min-h-screen" : ""
+            } md:flex md:items-center md:space-x-12 absolute md:static top-16 left-0 w-full md:w-auto bg-[#121212] md:bg-transparent p-4 md:p-0 transition-all duration-300 ease-in-out z-20 ${isMobileMenuOpen ? "block  min-h-screen" : ""
             }`}
         >
           {pages.map((page) => (
             <div
               key={page.name}
-              className={`text-3xl mt-2 md:text-base font-coinbase-sans hover:text-blue-600 ml-0 md:ml-24 hover:cursor-pointer ${currentPage === page.path ? "text-blue-600" : ""
+              className={`text-3xl mt-2 md:text-base font-coinbase-sans hover:text-emerald-300 ml-0 md:ml-24 hover:cursor-pointer ${currentPage === page.path ? "text-emerald-300" : ""
                 } py-2 md:py-0`}
               onClick={() => {
                 navigate(page.path);

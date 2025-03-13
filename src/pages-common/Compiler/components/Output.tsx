@@ -1,4 +1,3 @@
-// src/components/Output.tsx
 import React from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,32 +10,30 @@ function Output({ className }: { className?: string }) {
   const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler);
 
   return (
-    <div
-      className={cn('col-span-1 md:col-span-4 h-[calc(80vh-64px)] bg-background/60', className)}
-    >
+    <div className={cn('h-full bg-background', className)}>
       <div className="p-4 h-full flex flex-col">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-2 bg-dark-100 rounded-md shadow-md">
-          <h2 className="text-base font-semibold mb-2 md:mb-0">Output</h2>
-          <div className="flex flex-row items-center">
-            { result.execution_time && (
-              <div className="bg-yellow-200 text-black px-3 py-1 rounded-md text-sm mr-2">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-2 bg-muted/20 rounded-md border border-border/50">
+          <h2 className="text-base font-semibold text-foreground mb-2 md:mb-0">Output</h2>
+          <div className="flex flex-row items-center gap-2">
+            {result.execution_time && (
+              <div className="bg-yellow-200/20 text-yellow-600 px-3 py-1 rounded-md text-sm border border-yellow-600/20">
                 Time: {result.execution_time}
               </div>
             )}
             <div className="flex justify-center items-center">
               {result.success === true ? (
-                <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">
+                <span className="bg-green-500/20 text-green-600 px-3 py-1 rounded-md text-sm border border-green-600/20">
                   Success
                 </span>
               ) : result.success === false && (result.status_message || result.error) ? (
-                <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
+                <span className="bg-red-500/20 text-red-600 px-3 py-1 rounded-md text-sm border border-red-600/20">
                   Error
                 </span>
               ) : null}
             </div>
           </div>
         </div>
-        <ScrollArea className="flex-1 p-4 bg-muted rounded-md border">
+        <ScrollArea className="flex-1 p-4 bg-muted/20 rounded-md border border-border/50">
           <AnimatePresence mode="wait">
             {loading ? (
               <motion.div
@@ -47,9 +44,9 @@ function Output({ className }: { className?: string }) {
                 className="flex items-start h-full"
               >
                 <div className="flex flex-col gap-2">
-                  <Skeleton className="w-[150px] h-[20px] mb-2 rounded-full" />
-                  <Skeleton className="w-[100px] h-[20px] mb-2 rounded-full" />
-                  <Skeleton className="w-[170px] h-[20px] rounded-full" />
+                  <Skeleton className="w-[150px] h-[20px] mb-2 rounded-full bg-muted" />
+                  <Skeleton className="w-[100px] h-[20px] mb-2 rounded-full bg-muted" />
+                  <Skeleton className="w-[170px] h-[20px] rounded-full bg-muted" />
                 </div>
               </motion.div>
             ) : result.success === true ? (
@@ -96,7 +93,7 @@ function Output({ className }: { className?: string }) {
               </motion.div>
             )}
           </AnimatePresence>
-          <ScrollBar className="w-2 blue-500" orientation="vertical" />
+          <ScrollBar className="w-2" orientation="vertical" />
         </ScrollArea>
       </div>
     </div>

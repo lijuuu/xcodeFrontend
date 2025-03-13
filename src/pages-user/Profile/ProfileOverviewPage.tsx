@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getUser, setAuthLoading } from '@/redux/authSlice';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
-import EditProfileCard from './components/EditProfileCard';
+// import EditProfileCard from './components/EditProfileCard';
 
 const ProfilePageOverview = () => {
   const dispatch = useDispatch();
@@ -29,7 +29,7 @@ const ProfilePageOverview = () => {
   return (
     <div className='min-h-screen w-full bg-night-black'>
 
-      <NavHeader logout={true} pages={[{ name: "Problems", path: "/problems" }, { name: "Compiler", path: "/compiler" }, { name: "Leaderboard", path: "/leaderboard" }, { name: "Chat", path: "/chat" }, { name: "Profile", path: "/" }, { name: "Home", path: "/home" }]} name="Profile" />
+      <NavHeader logout={true} pages={[{ name: "Home", path: "/home" },{ name: "Profile", path: "/" },{ name: "Problems", path: "/problems" }, { name: "Compiler", path: "/compiler" }, { name: "Leaderboard", path: "/leaderboard" }, { name: "Chat", path: "/chat" }, { name: "Settings", path: "/settings" }]} name="Profile" />
       {loading ? <div>Loading...</div> : <ProfileCard user={userProfile} />}
     </div>
   )

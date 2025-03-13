@@ -26,9 +26,9 @@ const difficultyData = [
 ];
 
 // DashboardStats Component
-const ProblemSolvingStats = () => {
+const ProblemSolvingStats = ({ className }: { className: string }) => {
   return (
-    <div className="bg-[#1D1D1D] p-6 rounded-xl w-full h-full flex items-center space-x-6 shadow-lg border border-gray-800 hover:border-gray-700 transition-all duration-300">
+    <div className={`bg-[#1D1D1D] p-6 rounded-xl w-full h-full flex items-center space-x-6 shadow-lg border border-gray-800 hover:border-gray-700 transition-all duration-300 ${className}`}>
       <div className="flex flex-col space-y-3 w-full">
         <p className="text-xl font-semibold text-white font-coinbase-display">Problem Solving Stats</p>
         <div className="flex items-center space-x-6">

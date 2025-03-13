@@ -12,6 +12,7 @@ import ProblemSolvingStats from "./ProblemSolvingStats";
 import LoaderOverlay from "./LoaderOverlay";
 import BadgesEarned from "./BadgesEarned";
 import { useNavigate } from "react-router-dom";
+import { Languages } from "lucide-react";
 // Define ProfileCardProps
 type ProfileCardProps = {
   user: any;
@@ -26,6 +27,44 @@ const dummyRecentSubmissions = [
   { id: 4, title: "Add Two Numbers", difficulty: "Medium", category: ["Linked List", "Math"], status: "Solved" },
   { id: 5, title: "Longest Palindromic Substring", difficulty: "Medium", category: ["String", "Dynamic Programming"], status: "Attempted" },
 ];
+
+const LanguageStats = () => {
+  return (
+    <div className="bg-[#1D1D1D] rounded-xl border border-[#2C2C2C] shadow-lg p-6 hover:border hover:border-gray-700 transition-all duration-300">
+      <h1 className="text-xl font-semibold text-white mb-4 font-coinbase-display">Languages</h1>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
+          <span className="text-sm text-gray-300 font-coinbase-sans">Golang</span>
+          <div className="flex items-center text-sm">
+            <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">30</span>
+            <span className="text-gray-500 ml-1">submissions</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
+          <span className="text-sm text-gray-300 font-coinbase-sans">Python</span>
+          <div className="flex items-center text-sm">
+            <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">10</span>
+            <span className="text-gray-500 ml-1">submissions</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
+          <span className="text-sm text-gray-300 font-coinbase-sans">C++</span>
+          <div className="flex items-center text-sm">
+            <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">10</span>
+            <span className="text-gray-500 ml-1">submissions</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
+          <span className="text-sm text-gray-300 font-coinbase-sans">JavaScript</span>
+          <div className="flex items-center text-sm">
+            <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">10</span>
+            <span className="text-gray-500 ml-1">submissions</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 
 // ProfileCard Component
@@ -154,39 +193,8 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
           </div>
 
           {/* Languages Card */}
-          <div className="bg-[#1D1D1D] rounded-xl border border-[#2C2C2C] shadow-lg p-6 hover:border hover:border-gray-700 transition-all duration-300">
-            <h1 className="text-xl font-semibold text-white mb-4 font-coinbase-display">Languages</h1>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
-                <span className="text-sm text-gray-300 font-coinbase-sans">Golang</span>
-                <div className="flex items-center text-sm">
-                  <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">30</span>
-                  <span className="text-gray-500 ml-1">submissions</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
-                <span className="text-sm text-gray-300 font-coinbase-sans">Python</span>
-                <div className="flex items-center text-sm">
-                  <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">10</span>
-                  <span className="text-gray-500 ml-1">submissions</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
-                <span className="text-sm text-gray-300 font-coinbase-sans">C++</span>
-                <div className="flex items-center text-sm">
-                  <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">10</span>
-                  <span className="text-gray-500 ml-1">submissions</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center bg-[#2C2C2C] p-3 rounded-md">
-                <span className="text-sm text-gray-300 font-coinbase-sans">JavaScript</span>
-                <div className="flex items-center text-sm">
-                  <span className="text-[#3CE7B2] font-coinbase-sans font-medium text-base">10</span>
-                  <span className="text-gray-500 ml-1">submissions</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <LanguageStats />
+
         </div>
 
         {/* Right Container */}
@@ -196,9 +204,11 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
           </div>
           <div className="flex flex-col md:flex-row gap-6">
             <div className="w-full md:w-1/2 h-full">
-              <ProblemSolvingStats />
+              <ProblemSolvingStats className="w-full pb-20" />
+              {/* <LanguageStats /> */}
+
             </div>
-              <BadgesEarned />
+            <BadgesEarned />
           </div>
 
           <div className="h-auto md:h-[400px] w-full bg-[#1D1D1D] rounded-xl shadow-lg p-6 overflow-y-auto border border-gray-800 hover:border-gray-700 transition-all duration-300">
@@ -213,10 +223,10 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
                     <p className="text-sm text-white font-medium font-coinbase-sans">{submission.title}</p>
                     <div className="flex items-center space-x-2 mt-2">
                       <span className={`text-xs px-2 py-1 rounded-full font-medium font-coinbase-sans ${submission.difficulty === "Easy"
-                          ? "bg-emerald-900 text-emerald-400"
-                          : submission.difficulty === "Medium"
-                            ? "bg-blue-900 text-blue-400"
-                            : "bg-red-900 text-red-400"}`
+                        ? "bg-emerald-900 text-emerald-400"
+                        : submission.difficulty === "Medium"
+                          ? "bg-blue-900 text-blue-400"
+                          : "bg-red-900 text-red-400"}`
                       }>
                         {submission.difficulty}
                       </span>
@@ -229,10 +239,10 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
                   </div>
                   <span
                     className={`text-xs px-3 py-1 rounded-full font-medium font-coinbase-sans ${submission.status === "Solved"
-                        ? "bg-[#164F45] text-[#3CE7B2]"
-                        : submission.status === "Attempted"
-                          ? "bg-blue-900 text-blue-400"
-                          : "bg-red-900 text-red-400"
+                      ? "bg-[#164F45] text-[#3CE7B2]"
+                      : submission.status === "Attempted"
+                        ? "bg-blue-900 text-blue-400"
+                        : "bg-red-900 text-red-400"
                       }`}
                   >
                     {submission.status}
