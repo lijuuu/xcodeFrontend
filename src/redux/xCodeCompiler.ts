@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { File, Response } from '@/pages-user/Compiler/CompilerPage';
+import { File, Response } from '@/pages-common/Compiler/CompilerPage';
 
 // Define state type
 interface XCodeState {
@@ -82,38 +82,67 @@ export const runCode = createAsyncThunk(
   }
 );
 
-// The slice
 const xCodeCompilerSlice = createSlice({
   name: 'xCodeCompiler',
   initialState,
   reducers: {
-
     setCode: (state, action: PayloadAction<string>) => {
       state.code = action.payload;
+      if (state.currentFile) {
+        state.files = state.files.map((file) =>
+          file.id === state.currentFile
+            ? { ...file, content: action.payload, lastModified: new Date().toISOString() }
+            : file
+        );
+        localStorage.setItem('xcode-files', JSON.stringify(state.files));
+      }
     },
 
     setLanguage: (state, action: PayloadAction<string>) => {
       state.language = action.payload;
+      if (state.currentFile) {
+        state.files = state.files.map((file) =>
+          file.id === state.currentFile
+            ? { ...file, language: action.payload, lastModified: new Date().toISOString() }
+            : file
+        );
+        localStorage.setItem('xcode-files', JSON.stringify(state.files));
+      }
     },
-
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-
+    
     setResult: (state, action: PayloadAction<Response>) => {
       state.result = action.payload;
-    },
+    },    
 
     setFiles: (state, action: PayloadAction<File[]>) => {
       state.files = action.payload;
-    },
-
-    setFile: (state, action: PayloadAction<string>) => {
-      state.file = action.payload;
+      localStorage.setItem('xcode-files', JSON.stringify(state.files));
     },
 
     setCurrentFile: (state, action: PayloadAction<string | null>) => {
       state.currentFile = action.payload;
+      if (action.payload) {
+        const file = state.files.find((f) => f.id === action.payload);
+        if (file) {
+          state.code = file.content;
+          state.language = file.language;
+        }
+      }
+    },
+
+    setFile: (state, action: PayloadAction<string>) => {
+      state.file = action.payload;
+      if (state.currentFile) {
+        state.files = state.files.map((file) =>
+          file.id === state.currentFile
+            ? { ...file, name: file.name.replace(/\.[^.]+$/, `.${action.payload}`), lastModified: new Date().toISOString() }
+            : file
+        );
+        localStorage.setItem('xcode-files', JSON.stringify(state.files));
+      }
     },
 
     setRenaming: (state, action: PayloadAction<boolean>) => {
@@ -127,6 +156,7 @@ const xCodeCompilerSlice = createSlice({
     setFileToRename: (state, action: PayloadAction<string | null>) => {
       state.fileToRename = action.payload;
     },
+
     saveCurrentFile: (
       state,
       action: PayloadAction<{ currentFile: string; code: string }>
@@ -158,7 +188,6 @@ const xCodeCompilerSlice = createSlice({
   },
 });
 
-// Export actions
 export const {
   setCode,
   setLanguage,
@@ -174,3 +203,4 @@ export const {
 } = xCodeCompilerSlice.actions;
 
 export default xCodeCompilerSlice.reducer;
+

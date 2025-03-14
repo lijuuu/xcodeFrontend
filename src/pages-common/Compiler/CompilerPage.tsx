@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
 import { Button } from '@/components/ui/button';
 import { Download, Settings, Code as CodeIcon, Menu, Maximize2, Minimize2 } from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,6 +19,7 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
+import { SiJavascript, SiPython, SiGo, SiCplusplus } from 'react-icons/si';
 
 interface File {
   id: string;
@@ -38,10 +39,34 @@ interface Response {
 }
 
 export const languages = [
-  { value: 'javascript', file: 'js', req: 'js', label: 'JavaScript', icon: '📜' },
-  { value: 'python', file: 'py', req: 'python', label: 'Python', icon: '🐍' },
-  { value: 'go', file: 'go', req: 'go', label: 'Go', icon: '🔄' },
-  { value: 'cpp', file: 'cpp', req: 'cpp', label: 'C++', icon: '⚙️' }
+  {
+    value: 'javascript',
+    file: 'js',
+    req: 'js',
+    label: 'JavaScript',
+    icon: <SiJavascript className="h-4 w-4 text-yellow-400" />
+  },
+  {
+    value: 'python',
+    file: 'py',
+    req: 'python',
+    label: 'Python',
+    icon: <SiPython className="h-4 w-4 text-blue-400" />
+  },
+  {
+    value: 'go',
+    file: 'go',
+    req: 'go',
+    label: 'Go',
+    icon: <SiGo className="h-4 w-4 text-cyan-400" />
+  },
+  {
+    value: 'cpp',
+    file: 'cpp',
+    req: 'cpp',
+    label: 'C++',
+    icon: <SiCplusplus className="h-4 w-4 text-purple-400" />
+  }
 ];
 
 function OnlineCompilerPage() {
@@ -90,7 +115,7 @@ function OnlineCompilerPage() {
     const handleResize = () => {
       const newIsMobile = window.innerWidth < 768;
       setIsMobile(newIsMobile);
-      
+
       // Reset panel layout when switching between mobile and desktop
       if (newIsMobile !== isMobile) {
         setPanelLayout({
@@ -110,16 +135,16 @@ function OnlineCompilerPage() {
     const currentLang = languages.find(l => l.value === language);
     const extension = currentLang?.file || 'txt';
     const filename = `code.${extension}`;
-    
+
     const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    
+
     // Cleanup
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -148,58 +173,52 @@ function OnlineCompilerPage() {
               <Menu className="h-4 w-4" />
             </SidebarTrigger>
             <div className="flex items-center">
-              <CodeIcon className="h-4 w-4 mr-2 text-primary" />
               <span className="font-medium text-foreground">xcode</span>
               <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">compiler</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1 md:gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 md:px-3 border-border/50 hover:bg-muted">
-                  <span>{languages.find(l => l.value === language)?.icon}</span>
-                  <span className="hidden sm:inline ml-1">{languages.find(l => l.value === language)?.label}</span>
+                  <span className="flex items-center">
+                    {languages.find(l => l.value === language)?.icon}
+                    <span className="hidden sm:inline ml-2">
+                      {languages.find(l => l.value === language)?.label}
+                    </span>
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border/50">
                 {languages.map((lang) => (
-                  <DropdownMenuItem 
-                    key={lang.value} 
+                  <DropdownMenuItem
+                    key={lang.value}
                     onClick={() => {
                       dispatch(setLanguage(lang.value));
                       dispatch(setFile(lang.file));
                     }}
-                    className="hover:bg-muted"
+                    className="hover:bg-muted flex items-center"
                   >
                     <span className="mr-2">{lang.icon}</span> {lang.label}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             {isMobile && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 hover:bg-muted" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-muted"
                 onClick={toggleOutputPanel}
                 title={outputExpanded ? "Show Editor" : "Show Output"}
               >
                 {outputExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
             )}
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 hover:bg-muted"
-              onClick={handleDownloadCode}
-              title="Download Code"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-            
+
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
@@ -217,18 +236,18 @@ function OnlineCompilerPage() {
             </DropdownMenu>
           </div>
         </div>
-        
+
         <div className="flex-grow overflow-hidden bg-background">
           {isMobile ? (
             <div className="h-full">
-              <div 
-                className="h-full transition-all duration-300" 
+              <div
+                className="h-full transition-all duration-300"
                 style={{ display: outputExpanded ? 'none' : 'block' }}
               >
-                <CodeEditor className="h-full" />
+                <CodeEditor className="h-full" isMobile={true} />
               </div>
-              <div 
-                className="h-full transition-all duration-300" 
+              <div
+                className="h-full transition-all duration-300"
                 style={{ display: outputExpanded ? 'block' : 'none' }}
               >
                 <Output className="h-full" />
@@ -237,10 +256,10 @@ function OnlineCompilerPage() {
           ) : (
             <ResizablePanelGroup direction="horizontal" className="bg-background">
               <ResizablePanel defaultSize={65} minSize={40} className="flex flex-col overflow-hidden">
-                <CodeEditor className="flex-grow" />
+                <CodeEditor className="flex-grow" isMobile={false} />
               </ResizablePanel>
               <ResizableHandle withHandle className="bg-border/50" />
-              <ResizablePanel defaultSize={35} minSize={20} className="overflow-hidden">
+              <ResizablePanel defaultSize={25} maxSize={45} minSize={20} className="overflow-hidden">
                 <Output className="h-full" />
               </ResizablePanel>
             </ResizablePanelGroup>

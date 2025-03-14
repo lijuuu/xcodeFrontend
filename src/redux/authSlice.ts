@@ -236,7 +236,7 @@ export const loginUser = (credentials: { email: string; password: string; code?:
       dispatch(loginSuccess(data));
       dispatch(setAuthLoading(false));
     }, 1500);
-    
+
   } catch (error: any) {
     const errorResponse = error.response?.data;
     const type = errorResponse?.error?.type || "ERR_LOGIN_CRED_WRONG";

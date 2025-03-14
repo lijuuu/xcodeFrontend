@@ -39,7 +39,6 @@ const FileSystem: React.FC = () => {
   const [isRenaming, setIsRenamingLocal] = useState(false);
   const [newFileName, setNewFileNameLocal] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  // const [showUnsavedAlert, setShowUnsavedAlert] = useState(false);
 
   useEffect(() => {
     const loadFilesFromLocalStorage = () => {
@@ -66,23 +65,6 @@ const FileSystem: React.FC = () => {
     loadFilesFromLocalStorage();
   }, [dispatch, currentFile]);
 
-  const createNewFile = () => {
-    const newId = Date.now().toString();
-    const newFile: File = {
-      id: newId,
-      name: `NewFile${files.length + 1}.${file}`,
-      language,
-      content: files.length == 0 ? code : getPlaceholder(language),
-      createdAt: new Date().toISOString(),
-      lastModified: new Date().toISOString(),
-    };
-    const updatedFiles = [...files, newFile];
-    dispatch(setFiles(updatedFiles));
-    localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
-    dispatch(setCurrentFile(newId));
-    dispatch(setCode(newFile.content));
-  };
-
   const getPlaceholder = (language: string): string => {
     switch (language) {
       case 'js':
@@ -98,10 +80,25 @@ const FileSystem: React.FC = () => {
     }
   };
 
+  const createNewFile = () => {
+    const newId = Date.now().toString();
+    const newFile: File = {
+      id: newId,
+      name: `NewFile${files.length + 1}.${file}`,
+      language,
+      content: files.length === 0 ? code : getPlaceholder(language),
+      createdAt: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
+    };
+    const updatedFiles = [...files, newFile];
+    dispatch(setFiles(updatedFiles)); // This already updates localStorage via the reducer
+    dispatch(setCurrentFile(newId));
+    dispatch(setCode(newFile.content));
+  };
+
   const deleteFile = (id: string) => {
     const updatedFiles = files.filter((f: File) => f.id !== id);
-    dispatch(setFiles(updatedFiles));
-    localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
+    dispatch(setFiles(updatedFiles)); // This already updates localStorage via the reducer
     if (currentFile === id) {
       if (updatedFiles.length > 0) {
         dispatch(setCurrentFile(updatedFiles[0].id));
@@ -128,24 +125,20 @@ const FileSystem: React.FC = () => {
         setNameError('File name cannot be empty');
         return;
       }
+      return;
     }
     const updatedFiles = files.map((file: File) =>
       file.id === currentFile
         ? { ...file, name: newFileName, lastModified: new Date().toISOString() }
         : file
     );
-    dispatch(setFiles(updatedFiles));
-    localStorage.setItem('xcode-files', JSON.stringify(updatedFiles));
+    dispatch(setFiles(updatedFiles)); // This already updates localStorage via the reducer
     dispatch(setRenaming(false));
     setIsRenamingLocal(false);
   };
 
   const setCurrentFileFn = (id: string) => {
-    const file = files.find((f: File) => f.id === id);
-    if (file) {
-      dispatch(setCode(file.content));
-      dispatch(setCurrentFile(id));
-    }
+    dispatch(setCurrentFile(id)); // This updates code and language via the reducer
   };
 
   const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,7 +242,7 @@ const FileSystem: React.FC = () => {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => dispatch(setRenaming(false))}
+              onClick={() => setIsRenamingLocal(false)}
               className="border-border/50 text-foreground hover:bg-muted"
             >
               Cancel

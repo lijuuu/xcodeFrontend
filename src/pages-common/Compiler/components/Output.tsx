@@ -4,10 +4,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RootState } from '@/redux/store'; 
+import { RootState } from '@/redux/store';
+import { Copy, CheckCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 function Output({ className }: { className?: string }) {
   const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler);
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    const textToCopy = result.output || result.status_message || result.error || '';
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      toast.success('Copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Failed to copy');
+    }
+  };
 
   return (
     <div className={cn('h-full bg-background', className)}>
@@ -19,6 +34,19 @@ function Output({ className }: { className?: string }) {
               <div className="bg-yellow-200/20 text-yellow-600 px-3 py-1 rounded-md text-sm border border-yellow-600/20">
                 Time: {result.execution_time}
               </div>
+            )}
+            {(result.output || result.status_message || result.error) && (
+              <button
+                onClick={handleCopy}
+                className="p-2 hover:bg-muted/30 rounded-md transition-colors"
+                title="Copy to clipboard"
+              >
+                {copied ? (
+                  <CheckCheck className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
             )}
             <div className="flex justify-center items-center">
               {result.success === true ? (
