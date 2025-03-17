@@ -17,7 +17,7 @@ import AddProblems from "@/pages-user/Problem/AddProblems";
 import SetUpTwoFactor from "@/pages-user/Auth/SetUpTwoFactor";
 import NotFound from "@/pages-common/NotFound";
 import SettingsPage from "@/pages-user/SettingsDashboard/SettingsPage";
-import AdminDashBoard from "./pages-common/testproblems";
+import AdminDashBoard from "./pages-admin/AdminDashboard";
 
 function App() {
   return (
@@ -40,7 +40,6 @@ function App() {
 
             <Route path="/admin/login" element={<AdminLoginForm />}></Route>
             <Route path="/admin/dashboard" element={<AdminDashboard />}></Route>
-            <Route path="/admin/addproblems" element={<AddProblems />}></Route>
 
 
             <Route path="/settings" element={<SettingsPage />}></Route>            
