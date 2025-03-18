@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useCallback } from "react"
+import React, { useRef, useEffect, useState, useCallback } from "react"
 import axios from "axios"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -35,7 +35,7 @@ import {
   Server,
   Trash2,
 } from "lucide-react"
-import { MultiSelect } from "./multi-select"
+import { cn } from "@/lib/utils"
 
 const BASE_URL = "http://localhost:7000/api/v1/problems"
 
@@ -104,36 +104,81 @@ interface ApiHistoryEntry {
   receivedData: any
 }
 
-// Custom API Response Toast Component
-const ApiResponseToast = ({ title, data, isError = false }: { title: string; data: any; isError?: boolean }) => {
+
+// MultiSelect component for tags
+const MultiSelect = ({ options, selected, onChange, placeholder, className }: any) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState("")
+
+  const filteredOptions = options.filter(
+    (option: any) =>
+      !selected.find((s: any) => s.value === option.value) &&
+      option.label.toLowerCase().includes(searchValue.toLowerCase()),
+  )
+
   return (
-    <div className="rounded-lg overflow-hidden border border-white/10 shadow-xl">
-      <div className={`px-4 py-3 flex items-center justify-between ${isError ? "bg-red-900/50" : "bg-blue-900/50"}`}>
-        <h3 className="font-medium text-white">{title}</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigator.clipboard.writeText(JSON.stringify(data, null, 2))}
-            className="text-white/70 hover:text-white transition p-1 rounded"
-            title="Copy to clipboard"
-          >
-            <Copy className="w-4 h-4" />
-          </button>
+    <div className="relative">
+      <div
+        className={cn(
+          "flex min-h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className,
+        )}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex flex-wrap gap-1">
+          {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
+          {selected.map((item: any) => (
+            <Badge
+              key={item.value}
+              variant="secondary"
+              className="flex items-center gap-1 px-2 py-0.5 text-xs dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700"
+            >
+              {item.label}
+              <button
+                type="button"
+                className="ml-1 rounded-full outline-none focus:ring-2"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange(selected.filter((s: any) => s.value !== item.value))
+                }}
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
         </div>
       </div>
-      <div className="bg-gray-900 max-h-[400px] overflow-auto">
-        <SyntaxHighlighter
-          language="json"
-          style={tomorrow}
-          customStyle={{
-            padding: "16px",
-            fontSize: "13px",
-            backgroundColor: "transparent",
-            margin: 0,
-          }}
-        >
-          {JSON.stringify(data, null, 2)}
-        </SyntaxHighlighter>
-      </div>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg">
+          <div className="p-2">
+            <Input
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            />
+          </div>
+          <ul className="max-h-60 overflow-auto p-2">
+            {filteredOptions.length === 0 && (
+              <li className="px-2 py-1.5 text-sm text-zinc-500 dark:text-zinc-400">No options found</li>
+            )}
+            {filteredOptions.map((option: any) => (
+              <li
+                key={option.value}
+                className="cursor-pointer rounded-md px-2 py-1.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange([...selected, option])
+                  setSearchValue("")
+                }}
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
@@ -218,29 +263,21 @@ export default function AdminDashboard() {
         await fetchProblems()
         if (selectedProblem?.problem_id) await fetchProblemDetails(selectedProblem.problem_id)
         setSuccess("Action completed successfully!")
-
-        toast(<ApiResponseToast title="API Response" data={res.data} />, {
-          duration: 10000,
-        })
-
+        toast.success(res.data.message || "Action completed successfully!", { duration: 3000 })
         setTimeout(() => setSuccess(null), 3000)
         return res.data
       } catch (error: any) {
-        const errorData = error.response?.data || error.message
+        const errorMessage = error.response?.data?.error?.message || error.message || "Action failed"
         const historyEntry: ApiHistoryEntry = {
           timestamp,
           method,
           url,
           sentData: data || params || null,
-          receivedData: errorData,
+          receivedData: error.response?.data || error.message,
         }
         setApiHistory((prev) => [historyEntry, ...prev])
-        setError(error.response?.data?.error?.message || "Action failed")
-
-        toast.error(<ApiResponseToast title="Error Response" data={errorData} isError={true} />, {
-          duration: 10000,
-        })
-
+        setError(errorMessage)
+        toast.error(errorMessage, { duration: 10000 })
         throw error
       } finally {
         setLoading(false)
@@ -265,249 +302,308 @@ export default function AdminDashboard() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "E":
-        return "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+        return "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
       case "M":
         return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
       case "H":
         return "bg-red-500/10 text-red-500 hover:bg-red-500/20"
       default:
-        return "bg-primary/10 text-primary hover:bg-primary/20"
+        return "bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500/20"
     }
   }
 
+  // ... rest of your existing imports and code remain unchanged ...
+
   const applyFilters = useCallback(() => {
-    let filtered = [...problems]
+    let filtered = [...problems];
     if (filters.search) {
-      filtered = filtered.filter((p) => p.title.toLowerCase().includes(filters.search.toLowerCase()))
+      filtered = filtered.filter((p) => p.title.toLowerCase().includes(filters.search.toLowerCase()));
     }
     if (filters.difficulty !== "all") {
-      filtered = filtered.filter((p) => mapDifficulty(p.difficulty) === filters.difficulty)
+      filtered = filtered.filter((p) => mapDifficulty(p.difficulty) === filters.difficulty);
     }
     if (filters.tags) {
-      const tag = filters.tags.toLowerCase()
-      filtered = filtered.filter((p) => p.tags.some((t: string) => t.toLowerCase().includes(tag)))
+      const tag = filters.tags.toLowerCase();
+      filtered = filtered.filter((p) => p.tags.some((t: string) => t.toLowerCase().includes(tag)));
     }
-    setFilteredProblems(filtered)
-  }, [problems, filters])
+    setFilteredProblems(filtered);
+  }, [problems, filters]);
 
   useEffect(() => {
-    applyFilters()
-  }, [applyFilters])
+    applyFilters();
+  }, [applyFilters]);
 
-  // Problem List View
-  const ProblemListView = () => (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search problems..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="pl-9 w-full"
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowFilters(!showFilters)}
-              className={showFilters ? "bg-muted" : ""}
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => {
-                setSelectedProblem(null)
-                setView("details")
-              }}
-              className="whitespace-nowrap"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Problem
-            </Button>
-            {apiHistory.length > 0 && (
-              <Button variant="outline" onClick={() => setView("api")}>
-                <Server className="h-4 w-4 mr-2" />
-                API History
-              </Button>
-            )}
-          </div>
-        </div>
+  // Problem List View with uncontrolled inputs
+  const ProblemListView = () => {
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const tagInputRef = useRef<HTMLInputElement>(null);
 
-        {showFilters && (
-          <Card className="p-4 animate-in fade-in-50 duration-200">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Label htmlFor="difficulty-filter" className="text-sm font-medium mb-1.5 block">
-                  Difficulty
-                </Label>
-                <Select
-                  value={filters.difficulty}
-                  onValueChange={(value) => setFilters({ ...filters, difficulty: value })}
-                >
-                  <SelectTrigger id="difficulty-filter">
-                    <SelectValue placeholder="All Difficulties" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Difficulties</SelectItem>
-                    <SelectItem value="Easy">Easy</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <Label htmlFor="tag-filter" className="text-sm font-medium mb-1.5 block">
-                  Tag
-                </Label>
+    // Debounce function to limit filter updates
+    const debounce = useCallback(
+      (func: (...args: any[]) => void, wait: number) => {
+        let timeout: NodeJS.Timeout;
+        return (...args: any[]) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func(...args), wait);
+        };
+      },
+      []
+    );
+
+    // Debounced filter update
+    const updateFilters = debounce((search: string, tags: string) => {
+      setFilters((prev) => ({
+        ...prev,
+        search,
+        tags,
+      }));
+    }, 300);
+
+    // Handle input changes without immediate state updates
+    const handleSearchChange = () => {
+      const searchValue = searchInputRef.current?.value || "";
+      updateFilters(searchValue, tagInputRef.current?.value || "");
+    };
+
+    const handleTagChange = () => {
+      const tagValue = tagInputRef.current?.value || "";
+      updateFilters(searchInputRef.current?.value || "", tagValue);
+    };
+
+    // Clear filters and reset input values
+    const clearFilters = () => {
+      setFilters({ search: "", difficulty: "all", tags: "" });
+      if (searchInputRef.current) searchInputRef.current.value = "";
+      if (tagInputRef.current) tagInputRef.current.value = "";
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
-                  id="tag-filter"
-                  placeholder="Filter by tag..."
-                  value={filters.tags}
-                  onChange={(e) => setFilters({ ...filters, tags: e.target.value })}
+                  ref={searchInputRef}
+                  placeholder="Search problems..."
+                  defaultValue={filters.search}
+                  onChange={handleSearchChange}
+                  className="pl-9 w-full border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
                 />
               </div>
-              <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  setShowFilters(!showFilters);
+                  if (!showFilters && searchInputRef.current) {
+                    searchInputRef.current.focus();
+                  }
+                }}
+                className={`border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23] ${showFilters ? "bg-gray-100 dark:bg-[#1F1F23]" : ""}`}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setView("details")}
+                className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Problem
+              </Button>
+              {apiHistory.length > 0 && (
                 <Button
                   variant="outline"
-                  onClick={() => setFilters({ search: "", difficulty: "all", tags: "" })}
-                  className="w-full sm:w-auto"
+                  onClick={() => setView("api")}
+                  className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
                 >
-                  Clear Filters
+                  <Server className="h-4 w-4 mr-2" />
+                  API History
                 </Button>
-              </div>
+              )}
             </div>
+          </div>
+
+          {showFilters && (
+            <Card className="p-4 bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Label
+                    htmlFor="difficulty-filter"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 block"
+                  >
+                    Difficulty
+                  </Label>
+                  <Select
+                    value={filters.difficulty}
+                    onValueChange={(value) => setFilters({ ...filters, difficulty: value })}
+                  >
+                    <SelectTrigger
+                      id="difficulty-filter"
+                      className="border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                    >
+                      <SelectValue placeholder="All Difficulties" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23] text-gray-900 dark:text-gray-100">
+                      <SelectItem value="all">All Difficulties</SelectItem>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Label
+                    htmlFor="tag-filter"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 block"
+                  >
+                    Tag
+                  </Label>
+                  <Input
+                    id="tag-filter"
+                    ref={tagInputRef}
+                    placeholder="Filter by tag..."
+                    defaultValue={filters.tags}
+                    onChange={handleTagChange}
+                    className="border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="w-full sm:w-auto border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {loading && (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-900 dark:text-zinc-100" />
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Problems</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {filteredProblems.length} {filteredProblems.length === 1 ? "problem" : "problems"} found
+          </p>
+        </div>
+
+        {filteredProblems.length === 0 && !loading ? (
+          <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
+            <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+              <FileCode className="h-6 w-6 text-zinc-900 dark:text-zinc-100 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No problems found</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Create a new problem to get started.</p>
+              <Button
+                onClick={() => setView("details")}
+                className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Problem
+              </Button>
+            </CardContent>
           </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredProblems.map((problem) => (
+              <Card
+                key={problem.problem_id}
+                className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23] hover:shadow-lg hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 transition-all duration-200"
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <Badge className={`${getDifficultyColor(problem.difficulty)} font-normal mb-2`}>
+                      {mapDifficulty(problem.difficulty)}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-lg text-gray-900 dark:text-gray-100 truncate">{problem.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {problem.tags.slice(0, 3).map((tag: string) => (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className="font-normal text-xs text-gray-700 dark:text-gray-300 border-gray-200 dark:border-[#1F1F23]"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                    {problem.tags.length > 3 && (
+                      <Badge
+                        variant="outline"
+                        className="font-normal text-xs text-gray-700 dark:text-gray-300 border-gray-200 dark:border-[#1F1F23]"
+                      >
+                        +{problem.tags.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      fetchProblemDetails(problem.problem_id);
+                      setView("details");
+                    }}
+                    className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      fetchProblemDetails(problem.problem_id);
+                      setView("testcases");
+                    }}
+                    className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
+                  >
+                    Test Cases
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      fetchProblemDetails(problem.problem_id);
+                      setView("languages");
+                    }}
+                    className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
+                  >
+                    Languages
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      fetchProblemDetails(problem.problem_id);
+                      setView("validation");
+                    }}
+                    className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
+                  >
+                    Validate
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
+    );
+  };
 
-      {loading && (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
-
-      {error && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950/10 dark:border-red-900">
-          <CardContent className="p-4 flex items-center gap-2 text-red-600 dark:text-red-400">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <p>{error}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {success && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950/10 dark:border-green-900">
-          <CardContent className="p-4 flex items-center gap-2 text-green-600 dark:text-green-400">
-            <Check className="h-5 w-5 flex-shrink-0" />
-            <p>{success}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Problems</h1>
-        <p className="text-sm text-muted-foreground">
-          {filteredProblems.length} {filteredProblems.length === 1 ? "problem" : "problems"} found
-        </p>
-      </div>
-
-      {filteredProblems.length === 0 && !loading ? (
-        <Card>
-          <CardContent className="p-8 flex flex-col items-center justify-center text-center">
-            <div className="rounded-full bg-primary/10 p-3 mb-4">
-              <FileCode className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No problems found</h3>
-            <p className="text-muted-foreground mb-4">Create a new problem to get started.</p>
-            <Button
-              onClick={() => {
-                setSelectedProblem(null)
-                setView("details")
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Problem
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProblems.map((problem) => (
-            <Card key={problem.problem_id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <Badge className={`${getDifficultyColor(problem.difficulty)} font-normal mb-2`}>
-                    {mapDifficulty(problem.difficulty)}
-                  </Badge>
-                </div>
-                <CardTitle className="text-lg truncate">{problem.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {problem.tags.slice(0, 3).map((tag: string) => (
-                    <Badge key={tag} variant="outline" className="font-normal text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                  {problem.tags.length > 3 && (
-                    <Badge variant="outline" className="font-normal text-xs">
-                      +{problem.tags.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0 flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    fetchProblemDetails(problem.problem_id)
-                    setView("details")
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    fetchProblemDetails(problem.problem_id)
-                    setView("testcases")
-                  }}
-                >
-                  Test Cases
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    fetchProblemDetails(problem.problem_id)
-                    setView("languages")
-                  }}
-                >
-                  Languages
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    fetchProblemDetails(problem.problem_id)
-                    setView("validation")
-                  }}
-                >
-                  Validate
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  // ... rest of your component code remains unchanged ...
 
   // Problem Details View
   const ProblemDetailsView = () => {
@@ -521,12 +617,12 @@ export default function AdminDashboard() {
       resolver: zodResolver(problemSchema),
       defaultValues: selectedProblem
         ? {
-            title: selectedProblem.title,
-            description: selectedProblem.description,
-            tags: selectedProblem.tags || [],
-            difficulty: mapDifficulty(selectedProblem.difficulty),
-          }
-        : {},
+          title: selectedProblem.title,
+          description: selectedProblem.description,
+          tags: selectedProblem.tags || [],
+          difficulty: mapDifficulty(selectedProblem.difficulty),
+        }
+        : { title: "", description: "", tags: [], difficulty: "" },
     })
 
     useEffect(() => {
@@ -538,7 +634,7 @@ export default function AdminDashboard() {
           difficulty: mapDifficulty(selectedProblem.difficulty),
         })
       } else {
-        reset({})
+        reset({ title: "", description: "", tags: [], difficulty: "" })
       }
     }, [selectedProblem, reset])
 
@@ -566,116 +662,141 @@ export default function AdminDashboard() {
     }
 
     return (
-      <div className="container mx-auto py-6">
+      <div>
         <div className="mb-6 flex items-center gap-2">
-          <Button variant="outline" onClick={() => setView("list")}>
+          <Button
+            variant="outline"
+            onClick={() => setView("list")}
+            className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+          >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Problems
+            Back
           </Button>
-          <h1 className="text-2xl font-bold">{selectedProblem ? "Edit Problem" : "Create Problem"}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {selectedProblem ? "Edit Problem" : "Create Problem"}
+          </h1>
         </div>
 
-        {error && (
-          <Card className="border-red-200 bg-red-50 dark:bg-red-950/10 dark:border-red-900 mb-6">
-            <CardContent className="p-4 flex items-center gap-2 text-red-600 dark:text-red-400">
-              <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <p>{error}</p>
-            </CardContent>
-          </Card>
-        )}
 
-        {success && (
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950/10 dark:border-green-900 mb-6">
-            <CardContent className="p-4 flex items-center gap-2 text-green-600 dark:text-green-400">
-              <Check className="h-5 w-5 flex-shrink-0" />
-              <p>{success}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
+        <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
           <CardHeader>
-            <CardTitle>{selectedProblem ? "Edit Problem Details" : "Create New Problem"}</CardTitle>
-            <CardDescription>
-              {selectedProblem
-                ? "Update the problem information below"
-                : "Fill in the details to create a new coding problem"}
+            <CardTitle className="text-gray-900 dark:text-gray-100">
+              {selectedProblem ? "Edit Problem Details" : "Create New Problem"}
+            </CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              {selectedProblem ? "Update the problem details" : "Add a new coding problem"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input id="title" {...register("title")} placeholder="Enter problem title" className="mt-1" />
-                  {errors.title && <p className="text-sm text-red-500 mt-1">{errors.title.message}</p>}
+                  <Label htmlFor="title" className="text-gray-700 dark:text-gray-300">
+                    Title
+                  </Label>
+                  <Input
+                    id="title"
+                    {...register("title")}
+                    placeholder="Enter problem title"
+                    className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                  />
+                  {errors.title && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.title.message}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="difficulty">Difficulty</Label>
-                    <Select
-                      defaultValue={selectedProblem ? mapDifficulty(selectedProblem.difficulty) : ""}
-                      onValueChange={(value) => {
-                        const event = { target: { name: "difficulty", value } }
-                        register("difficulty").onChange(event)
-                      }}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.difficulty && <p className="text-sm text-red-500 mt-1">{errors.difficulty.message}</p>}
+                    <Label htmlFor="difficulty" className="text-gray-700 dark:text-gray-300">
+                      Difficulty
+                    </Label>
+                    <Controller
+                      name="difficulty"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100">
+                            <SelectValue placeholder="Select difficulty" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23] text-gray-900 dark:text-gray-100">
+                            <SelectItem value="Easy">Easy</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="Hard">Hard</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.difficulty && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.difficulty.message}</p>
+                    )}
                   </div>
 
                   <div>
-                    <Label htmlFor="tags">Tags</Label>
+                    <Label htmlFor="tags" className="text-gray-700 dark:text-gray-300">
+                      Tags
+                    </Label>
                     <Controller
                       name="tags"
                       control={control}
                       render={({ field }) => (
                         <MultiSelect
                           options={predefinedTags.map((tag) => ({ value: tag, label: tag }))}
-                          selected={field.value?.map((tag) => ({ value: tag, label: tag })) || []}
-                          onChange={(selected) => field.onChange(selected.map((s) => s.value))}
+                          selected={field.value.map((tag) => ({ value: tag, label: tag })) || []}
+                          onChange={(selected: any) => field.onChange(selected.map((s: any) => s.value))}
                           placeholder="Select tags..."
-                          className="mt-1"
+                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
                         />
                       )}
                     />
-                    {errors.tags && <p className="text-sm text-red-500 mt-1">{errors.tags.message}</p>}
+                    {errors.tags && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.tags.message}</p>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">
+                    Description
+                  </Label>
                   <Textarea
                     id="description"
                     {...register("description")}
                     placeholder="Describe the problem..."
-                    className="mt-1 min-h-32"
+                    className="mt-1 min-h-32 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
                   />
-                  {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>}
+                  {errors.description && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.description.message}</p>
+                  )}
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Button type="submit" disabled={isSubmitting || loading} className="sm:flex-1">
+              <div className="flex gap-3">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || loading}
+                  className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                >
                   {(isSubmitting || loading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   {selectedProblem ? "Update Problem" : "Create Problem"}
                 </Button>
                 {selectedProblem && (
-                  <Button type="button" variant="destructive" onClick={onDelete} disabled={isSubmitting || loading}>
-                    {(isSubmitting || loading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Delete Problem
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={onDelete}
+                    disabled={isSubmitting || loading}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
                   </Button>
                 )}
-                <Button type="button" variant="outline" onClick={() => setView("list")} className="sm:ml-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setView("list")}
+                  className="ml-auto border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+                >
                   Cancel
                 </Button>
               </div>
@@ -689,27 +810,30 @@ export default function AdminDashboard() {
   // Test Cases View
   const TestCasesView = () => {
     const {
-      register: registerRun,
+      control: runControl,
       handleSubmit: handleSubmitRun,
       reset: resetRun,
       formState: { errors: errorsRun },
     } = useForm<TestCaseFormData>({
       resolver: zodResolver(testCaseSchema),
+      defaultValues: { input: "", expected: "" },
       mode: "onChange",
     })
     const {
-      register: registerSubmit,
+      control: submitControl,
       handleSubmit: handleSubmitSubmit,
       reset: resetSubmit,
       formState: { errors: errorsSubmit },
     } = useForm<TestCaseFormData>({
       resolver: zodResolver(testCaseSchema),
+      defaultValues: { input: "", expected: "" },
       mode: "onChange",
     })
     const {
-      register: registerBulk,
+      control: bulkControl,
       handleSubmit: handleSubmitBulk,
       setValue: setBulkValue,
+      reset: resetBulk,
       formState: { errors: errorsBulk },
     } = useForm<{ bulkJson: string }>({
       resolver: zodResolver(
@@ -717,19 +841,17 @@ export default function AdminDashboard() {
           bulkJson: z
             .string()
             .min(1, "JSON is required")
-            .refine(
-              (val) => {
-                try {
-                  const parsed = JSON.parse(val)
-                  return bulkTestCaseSchema.safeParse(parsed).success
-                } catch {
-                  return false
-                }
-              },
-              "Invalid JSON format or structure",
-            ),
+            .refine((val) => {
+              try {
+                const parsed = JSON.parse(val)
+                return bulkTestCaseSchema.safeParse(parsed).success
+              } catch {
+                return false
+              }
+            }, "Invalid JSON format or structure"),
         }),
       ),
+      defaultValues: { bulkJson: "" },
       mode: "onChange",
     })
     const [selectedTestCases, setSelectedTestCases] = useState<Set<string>>(new Set())
@@ -785,26 +907,13 @@ export default function AdminDashboard() {
 
     const onBulkUpload = async (data: { bulkJson: string }) => {
       if (!selectedProblem) return setError("Please select or create a problem first.")
-      try {
-        const parsedJson = JSON.parse(data.bulkJson)
-        await handleApiCall("post", "/testcases", {
-          problem_id: selectedProblem.problem_id,
-          testcases: parsedJson,
-        })
-        setBulkValue("bulkJson", "")
-        toast.success("Test cases uploaded successfully!", {
-          duration: 3000,
-          className: "bg-gray-900 border border-white/10 text-white",
-        })
-        setSuccess("Test cases uploaded successfully!")
-        setActiveTab("existing")
-      } catch (e: any) {
-        toast.error(e.message || "Failed to upload bulk test cases.", {
-          duration: 3000,
-          className: "bg-gray-900 border border-white/10 text-white",
-        })
-        setError(e.message || "Failed to upload bulk test cases.")
-      }
+      const parsedJson = JSON.parse(data.bulkJson)
+      await handleApiCall("post", "/testcases", {
+        problem_id: selectedProblem.problem_id,
+        testcases: parsedJson,
+      })
+      resetBulk()
+      setActiveTab("existing")
     }
 
     const toggleTestCaseSelection = (testcaseId: string) => {
@@ -818,26 +927,25 @@ export default function AdminDashboard() {
 
     const copyExampleJson = () => {
       navigator.clipboard.writeText(exampleJson)
-      toast.success("Example JSON copied to clipboard!", {
-        duration: 3000,
-        className: "bg-gray-900 border border-white/10 text-white",
-      })
-      setSuccess("Example JSON copied to clipboard!")
-      setTimeout(() => setSuccess(null), 2000)
+      toast.success("Example JSON copied to clipboard!", { duration: 3000 })
     }
 
     return (
-      <div className="container mx-auto py-6">
+      <div>
         <div className="mb-6 flex items-center gap-2">
-          <Button variant="outline" onClick={() => setView("list")}>
+          <Button
+            variant="outline"
+            onClick={() => setView("list")}
+            className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+          >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Problems
+            Back
           </Button>
-          <h1 className="text-2xl font-bold">Test Cases: {selectedProblem?.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Test Cases: {selectedProblem?.title}</h1>
         </div>
 
         {error && (
-          <Card className="border-red-200 bg-red-50 dark:bg-red-950/10 dark:border-red-900 mb-6">
+          <Card className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/10 mb-6">
             <CardContent className="p-4 flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <p>{error}</p>
@@ -846,7 +954,7 @@ export default function AdminDashboard() {
         )}
 
         {success && (
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950/10 dark:border-green-900 mb-6">
+          <Card className="border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10 mb-6">
             <CardContent className="p-4 flex items-center gap-2 text-green-600 dark:text-green-400">
               <Check className="h-5 w-5 flex-shrink-0" />
               <p>{success}</p>
@@ -855,42 +963,68 @@ export default function AdminDashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
-            <TabsTrigger value="existing">Existing</TabsTrigger>
-            <TabsTrigger value="add">Add New</TabsTrigger>
-            <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
+          <TabsList className="grid grid-cols-3 w-full max-w-md bg-gray-100 dark:bg-[#1F1F23] border-gray-200 dark:border-[#1F1F23]">
+            <TabsTrigger
+              value="existing"
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2B2B30] data-[state=active]:bg-white dark:data-[state=active]:bg-[#0F0F12] data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100"
+            >
+              Existing
+            </TabsTrigger>
+            <TabsTrigger
+              value="add"
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2B2B30] data-[state=active]:bg-white dark:data-[state=active]:bg-[#0F0F12] data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100"
+            >
+              Add New
+            </TabsTrigger>
+            <TabsTrigger
+              value="bulk"
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2B2B30] data-[state=active]:bg-white dark:data-[state=active]:bg-[#0F0F12] data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100"
+            >
+              Bulk Upload
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="existing">
-            <Card>
+            <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                  <CardTitle>Existing Test Cases</CardTitle>
-                  <CardDescription>View and manage test cases for this problem</CardDescription>
+                  <CardTitle className="text-gray-900 dark:text-gray-100">Existing Test Cases</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    View and manage test cases
+                  </CardDescription>
                 </div>
                 {selectedTestCases.size > 0 && (
-                  <Button variant="destructive" size="sm" onClick={onBulkDelete} disabled={loading}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={onBulkDelete}
+                    disabled={loading}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Selected ({selectedTestCases.size})
                   </Button>
                 )}
               </CardHeader>
               <CardContent>
-                <ScrollArea className="min-h-screen rounded-md border">
+                <ScrollArea className="h-[400px] rounded-md border border-gray-200 dark:border-[#1F1F23]">
                   <div className="p-4">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b">
+                        <tr className="border-b border-gray-200 dark:border-[#1F1F23]">
                           <th className="p-2 text-left w-10"></th>
-                          <th className="p-2 text-left">Type</th>
-                          <th className="p-2 text-left">Input</th>
-                          <th className="p-2 text-left">Expected</th>
-                          <th className="p-2 text-left">Actions</th>
+                          <th className="p-2 text-left text-gray-700 dark:text-gray-300">Type</th>
+                          <th className="p-2 text-left text-gray-700 dark:text-gray-300">Input</th>
+                          <th className="p-2 text-left text-gray-700 dark:text-gray-300">Expected</th>
+                          <th className="p-2 text-left text-gray-700 dark:text-gray-300">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selectedProblem?.testcases?.run?.map((tc: any, i: number) => (
-                          <tr key={i} className="border-b hover:bg-muted/50 transition-colors">
+                          <tr
+                            key={i}
+                            className="border-b border-gray-200 dark:border-[#1F1F23] hover:bg-gray-50 dark:hover:bg-[#1F1F23]/50 transition-colors"
+                          >
                             <td className="p-2">
                               <Checkbox
                                 checked={selectedTestCases.has(tc.id || tc.testcase_id || `run_${i}`)}
@@ -898,22 +1032,23 @@ export default function AdminDashboard() {
                               />
                             </td>
                             <td className="p-2">
-                              <Badge
-                                variant="outline"
-                                className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-200"
-                              >
+                              <Badge variant="outline" className="bg-blue-500/10 text-blue-500">
                                 Run
                               </Badge>
                             </td>
-                            <td className="p-2 truncate max-w-xs ">{"[ "+tc.input.replace(" ",",")+" ]"}</td>
-                            <td className="p-2 truncate max-w-xs">{"[ "+tc.expected.replace(" ",",")+" ]"}</td>
+                            <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
+                              [ {tc.input.replace(" ", ", ")} ]
+                            </td>
+                            <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
+                              [ {tc.expected.replace(" ", ", ")} ]
+                            </td>
                             <td className="p-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => onRemove(tc.id || tc.testcase_id || `run_${i}`, true)}
                                 disabled={loading}
-                                className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
                                 Delete
                               </Button>
@@ -921,7 +1056,10 @@ export default function AdminDashboard() {
                           </tr>
                         ))}
                         {selectedProblem?.testcases?.submit?.map((tc: any, i: number) => (
-                          <tr key={i} className="border-b hover:bg-muted/50 transition-colors">
+                          <tr
+                            key={i}
+                            className="border-b border-gray-200 dark:border-[#1F1F23] hover:bg-gray-50 dark:hover:bg-[#1F1F23]/50 transition-colors"
+                          >
                             <td className="p-2">
                               <Checkbox
                                 checked={selectedTestCases.has(tc.id || tc.testcase_id || `submit_${i}`)}
@@ -931,22 +1069,23 @@ export default function AdminDashboard() {
                               />
                             </td>
                             <td className="p-2">
-                              <Badge
-                                variant="outline"
-                                className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-200"
-                              >
+                              <Badge variant="outline" className="bg-green-500/10 text-green-500">
                                 Submit
                               </Badge>
                             </td>
-                            <td className="p-2 truncate max-w-xs">{tc.input}</td>
-                            <td className="p-2 truncate max-w-xs">{tc.expected}</td>
+                            <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
+                              [ {tc.input.replace(" ", ", ")} ]
+                            </td>
+                            <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
+                              [ {tc.expected.replace(" ", ", ")} ]
+                            </td>
                             <td className="p-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => onRemove(tc.id || tc.testcase_id || `submit_${i}`, false)}
                                 disabled={loading}
-                                className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
                                 Delete
                               </Button>
@@ -957,10 +1096,14 @@ export default function AdminDashboard() {
                     </table>
                     {!selectedProblem?.testcases?.run?.length && !selectedProblem?.testcases?.submit?.length && (
                       <div className="py-8 text-center">
-                        <ListChecks className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-muted-foreground">No test cases added yet.</p>
-                        <Button variant="outline" className="mt-4" onClick={() => setActiveTab("add")}>
-                          Add Your First Test Case
+                        <ListChecks className="h-10 w-10 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                        <p className="text-gray-600 dark:text-gray-400">No test cases added yet.</p>
+                        <Button
+                          variant="outline"
+                          className="mt-4 border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+                          onClick={() => setActiveTab("add")}
+                        >
+                          Add Test Case
                         </Button>
                       </div>
                     )}
@@ -972,29 +1115,60 @@ export default function AdminDashboard() {
 
           <TabsContent value="add">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
+              <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
                 <CardHeader>
-                  <CardTitle>Add Run Test Case</CardTitle>
-                  <CardDescription>Test cases used during development</CardDescription>
+                  <CardTitle className="text-gray-900 dark:text-gray-100">Add Run Test Case</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    For development testing
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmitRun(onAddRun)} className="space-y-4">
                     <div>
-                      <Label htmlFor="run-input">Input</Label>
-                      <Input id="run-input" {...registerRun("input")} placeholder="Enter input..." className="mt-1" />
-                      {errorsRun.input && <p className="text-sm text-red-500 mt-1">{errorsRun.input.message}</p>}
+                      <Label htmlFor="run-input" className="text-gray-700 dark:text-gray-300">
+                        Input
+                      </Label>
+                      <Controller
+                        name="input"
+                        control={runControl}
+                        render={({ field }) => (
+                          <Input
+                            id="run-input"
+                            {...field}
+                            placeholder="Enter input..."
+                            className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          />
+                        )}
+                      />
+                      {errorsRun.input && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errorsRun.input.message}</p>
+                      )}
                     </div>
                     <div>
-                      <Label htmlFor="run-expected">Expected Output</Label>
-                      <Input
-                        id="run-expected"
-                        {...registerRun("expected")}
-                        placeholder="Enter expected output..."
-                        className="mt-1"
+                      <Label htmlFor="run-expected" className="text-gray-700 dark:text-gray-300">
+                        Expected Output
+                      </Label>
+                      <Controller
+                        name="expected"
+                        control={runControl}
+                        render={({ field }) => (
+                          <Input
+                            id="run-expected"
+                            {...field}
+                            placeholder="Enter expected output..."
+                            className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          />
+                        )}
                       />
-                      {errorsRun.expected && <p className="text-sm text-red-500 mt-1">{errorsRun.expected.message}</p>}
+                      {errorsRun.expected && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errorsRun.expected.message}</p>
+                      )}
                     </div>
-                    <Button type="submit" disabled={loading}>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                    >
                       {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       Add Run Test Case
                     </Button>
@@ -1002,36 +1176,58 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
                 <CardHeader>
-                  <CardTitle>Add Submit Test Case</CardTitle>
-                  <CardDescription>Test cases used for final submission</CardDescription>
+                  <CardTitle className="text-gray-900 dark:text-gray-100">Add Submit Test Case</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">For final submission</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmitSubmit(onAddSubmit)} className="space-y-4">
                     <div>
-                      <Label htmlFor="submit-input">Input</Label>
-                      <Input
-                        id="submit-input"
-                        {...registerSubmit("input")}
-                        placeholder="Enter input..."
-                        className="mt-1"
+                      <Label htmlFor="submit-input" className="text-gray-700 dark:text-gray-300">
+                        Input
+                      </Label>
+                      <Controller
+                        name="input"
+                        control={submitControl}
+                        render={({ field }) => (
+                          <Input
+                            id="submit-input"
+                            {...field}
+                            placeholder="Enter input..."
+                            className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          />
+                        )}
                       />
-                      {errorsSubmit.input && <p className="text-sm text-red-500 mt-1">{errorsSubmit.input.message}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="submit-expected">Expected Output</Label>
-                      <Input
-                        id="submit-expected"
-                        {...registerSubmit("expected")}
-                        placeholder="Enter expected output..."
-                        className="mt-1"
-                      />
-                      {errorsSubmit.expected && (
-                        <p className="text-sm text-red-500 mt-1">{errorsSubmit.expected.message}</p>
+                      {errorsSubmit.input && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errorsSubmit.input.message}</p>
                       )}
                     </div>
-                    <Button type="submit" disabled={loading}>
+                    <div>
+                      <Label htmlFor="submit-expected" className="text-gray-700 dark:text-gray-300">
+                        Expected Output
+                      </Label>
+                      <Controller
+                        name="expected"
+                        control={submitControl}
+                        render={({ field }) => (
+                          <Input
+                            id="submit-expected"
+                            {...field}
+                            placeholder="Enter expected output..."
+                            className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          />
+                        )}
+                      />
+                      {errorsSubmit.expected && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errorsSubmit.expected.message}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                    >
                       {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       Add Submit Test Case
                     </Button>
@@ -1042,48 +1238,61 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="bulk">
-            <Card>
+            <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
               <CardHeader>
-                <CardTitle>Bulk Upload Test Cases</CardTitle>
-                <CardDescription>Upload multiple test cases at once using JSON format</CardDescription>
+                <CardTitle className="text-gray-900 dark:text-gray-100">Bulk Upload Test Cases</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Upload multiple test cases via JSON
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmitBulk(onBulkUpload)} className="space-y-4">
                   <div className="relative">
-                    <Label htmlFor="bulk-json">JSON Data</Label>
-                    <div className="flex justify-end mb-2">
+                    <Label htmlFor="bulk-json" className="text-gray-700 dark:text-gray-300">
+                      JSON Data
+                    </Label>
+                    <div className="flex justify-end mb-2 gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setBulkValue("bulkJson", exampleJson)
-                          setSuccess("Example JSON loaded!")
-                          setTimeout(() => setSuccess(null), 2000)
-                        }}
-                        className="text-xs"
+                        onClick={() => setBulkValue("bulkJson", exampleJson)}
+                        className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
                       >
                         Load Example
                       </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={copyExampleJson}
+                        className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Example
+                      </Button>
                     </div>
-                    <Textarea
-                      id="bulk-json"
-                      {...registerBulk("bulkJson")}
-                      placeholder={exampleJson}
-                      className="min-h-40 font-mono text-sm"
+                    <Controller
+                      name="bulkJson"
+                      control={bulkControl}
+                      render={({ field }) => (
+                        <Textarea
+                          id="bulk-json"
+                          {...field}
+                          placeholder={exampleJson}
+                          className="min-h-40 font-mono text-sm border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                        />
+                      )}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={copyExampleJson}
-                      className="absolute bottom-4 right-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    {errorsBulk.bulkJson && <p className="text-sm text-red-500 mt-1">{errorsBulk.bulkJson.message}</p>}
+                    {errorsBulk.bulkJson && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errorsBulk.bulkJson.message}</p>
+                    )}
                   </div>
-                  <Button type="submit" disabled={loading} className="w-full">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                  >
                     {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Upload Bulk Test Cases
                   </Button>
@@ -1099,17 +1308,17 @@ export default function AdminDashboard() {
   // Languages View
   const LanguagesView = () => {
     const {
-      register,
+      control,
       handleSubmit,
       reset,
       setValue,
       formState: { errors, isSubmitting },
     } = useForm<LanguageFormData>({
       resolver: zodResolver(languageSchema),
+      defaultValues: { language: "", placeholder: "", code: "" },
       mode: "onChange",
     })
     const [selectedLanguage, setSelectedLanguage] = useState<LanguageSupport | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
 
     const formatLanguageName = (lang: string) => {
       switch (lang.toLowerCase()) {
@@ -1133,7 +1342,11 @@ export default function AdminDashboard() {
         cpp: "text-purple-500",
         go: "text-cyan-500",
       }
-      return <Code className={`h-5 w-5 ${colors[lang.toLowerCase() as keyof typeof colors] || "text-primary"}`} />
+      return (
+        <Code
+          className={`h-5 w-5 ${colors[lang.toLowerCase() as keyof typeof colors] || "text-zinc-900 dark:text-zinc-100"}`}
+        />
+      )
     }
 
     const defaultPlaceholder = {
@@ -1143,20 +1356,20 @@ export default function AdminDashboard() {
       },
       javascript: {
         placeholder: "// Write your JavaScript solution here\n",
-        code: "function validateSolution() {\n    # Add validation logic here\n}\n",
+        code: "function validateSolution() {\n    // Add validation logic here\n}\n",
       },
       cpp: {
         placeholder: "// Write your C++ solution here\n#include <iostream>\n",
-        code: "#include <iostream>\nbool validateSolution() {\n    # Add validation logic here\n    return true;\n}\n",
+        code: "#include <iostream>\nbool validateSolution() {\n    // Add validation logic here\n    return true;\n}\n",
       },
       go: {
         placeholder: "// Write your Go solution here\npackage main\n",
-        code: "package main\nfunc validateSolution() bool {\n    # Add validation logic here\n    return true;\n}\n",
+        code: "package main\nfunc validateSolution() bool {\n    // Add validation logic here\n    return true;\n}\n",
       },
     }
 
     const handleLanguageSelect = (value: string) => {
-      if (value) {
+      if (value && value !== "select") {
         const defaults = defaultPlaceholder[value as keyof typeof defaultPlaceholder]
         setValue("language", value, { shouldValidate: true })
         setValue("placeholder", defaults.placeholder, { shouldValidate: true })
@@ -1166,55 +1379,39 @@ export default function AdminDashboard() {
 
     const addLanguage = async (data: LanguageFormData) => {
       if (!selectedProblem) return setError("Please select or create a problem first.")
-      setIsLoading(true)
       const langDefaults = defaultPlaceholder[data.language as keyof typeof defaultPlaceholder] || {
         placeholder: "// Write your solution here\n",
         code: "// Add validation logic here\n",
       }
-      try {
-        await handleApiCall("post", "/language", {
-          problem_id: selectedProblem.problem_id,
+      await handleApiCall("post", "/language", {
+        problem_id: selectedProblem.problem_id,
+        language: data.language,
+        validation_code: {
+          placeholder: data.placeholder || langDefaults.placeholder,
+          code: data.code || langDefaults.code,
+        },
+      })
+      setLanguages([
+        ...languages,
+        {
           language: data.language,
-          validation_code: {
-            placeholder: data.placeholder || langDefaults.placeholder,
-            code: data.code || langDefaults.code,
-          },
-        })
-        setSuccess("Language added successfully")
-        setLanguages([
-          ...languages,
-          {
-            language: data.language,
-            placeholder: data.placeholder || langDefaults.placeholder,
-            code: data.code || langDefaults.code,
-          },
-        ])
-        reset()
-      } catch (err) {
-        setError("Failed to add language support")
-      } finally {
-        setIsLoading(false)
-      }
+          placeholder: data.placeholder || langDefaults.placeholder,
+          code: data.code || langDefaults.code,
+        },
+      ])
+      reset()
     }
 
     const updateLanguage = async (data: LanguageFormData) => {
       if (!selectedProblem) return setError("Please select a problem first.")
-      setIsLoading(true)
-      try {
-        await handleApiCall("put", "/language", {
-          problem_id: selectedProblem.problem_id,
-          language: data.language,
-          validation_code: { placeholder: data.placeholder, code: data.code },
-        })
-        setSuccess("Language updated successfully")
-        setLanguages(languages.map((lang) => (lang.language === data.language ? { ...data } : lang)))
-        setSelectedLanguage(null)
-        reset()
-      } catch (err) {
-        setError("Failed to update language support")
-      } finally {
-        setIsLoading(false)
-      }
+      await handleApiCall("put", "/language", {
+        problem_id: selectedProblem.problem_id,
+        language: data.language,
+        validation_code: { placeholder: data.placeholder, code: data.code },
+      })
+      setLanguages(languages.map((lang) => (lang.language === data.language ? { ...data } : lang)))
+      setSelectedLanguage(null)
+      reset()
     }
 
     const removeLanguage = async (language: string) => {
@@ -1223,19 +1420,11 @@ export default function AdminDashboard() {
         !window.confirm(`Are you sure you want to remove ${formatLanguageName(language)} support?`)
       )
         return
-      setIsLoading(true)
-      try {
-        await handleApiCall("delete", "/language", { problem_id: selectedProblem.problem_id, language })
-        setSuccess("Language removed successfully")
-        setLanguages(languages.filter((lang) => lang.language !== language))
-        if (selectedLanguage?.language === language) {
-          reset()
-          setSelectedLanguage(null)
-        }
-      } catch (err) {
-        setError("Failed to remove language support")
-      } finally {
-        setIsLoading(false)
+      await handleApiCall("delete", "/language", { problem_id: selectedProblem.problem_id, language })
+      setLanguages(languages.filter((lang) => lang.language !== language))
+      if (selectedLanguage?.language === language) {
+        reset()
+        setSelectedLanguage(null)
       }
     }
 
@@ -1247,17 +1436,21 @@ export default function AdminDashboard() {
     }
 
     return (
-      <div className="container mx-auto py-6">
+      <div>
         <div className="mb-6 flex items-center gap-2">
-          <Button variant="outline" onClick={() => setView("list")}>
+          <Button
+            variant="outline"
+            onClick={() => setView("list")}
+            className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+          >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Problems
+            Back
           </Button>
-          <h1 className="text-2xl font-bold">Languages: {selectedProblem?.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Languages: {selectedProblem?.title}</h1>
         </div>
 
         {error && (
-          <Card className="border-red-200 bg-red-50 dark:bg-red-950/10 dark:border-red-900 mb-6">
+          <Card className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/10 mb-6">
             <CardContent className="p-4 flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <p>{error}</p>
@@ -1266,7 +1459,7 @@ export default function AdminDashboard() {
         )}
 
         {success && (
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950/10 dark:border-green-900 mb-6">
+          <Card className="border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10 mb-6">
             <CardContent className="p-4 flex items-center gap-2 text-green-600 dark:text-green-400">
               <Check className="h-5 w-5 flex-shrink-0" />
               <p>{success}</p>
@@ -1276,10 +1469,12 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1">
-            <Card>
+            <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
               <CardHeader>
-                <CardTitle>Supported Languages</CardTitle>
-                <CardDescription>Languages that can be used to solve this problem</CardDescription>
+                <CardTitle className="text-gray-900 dark:text-gray-100">Supported Languages</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Languages available for this problem
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {languages.length > 0 ? (
@@ -1287,18 +1482,21 @@ export default function AdminDashboard() {
                     {languages.map((lang) => (
                       <div
                         key={lang.language}
-                        className="flex justify-between items-center p-3 rounded-md border hover:bg-muted/50 transition-colors"
+                        className="flex justify-between items-center p-3 rounded-md border border-gray-200 dark:border-[#1F1F23] hover:bg-gray-50 dark:hover:bg-[#1F1F23]/50 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           {getLanguageIcon(lang.language)}
-                          <span className="font-medium">{formatLanguageName(lang.language)}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-200">
+                            {formatLanguageName(lang.language)}
+                          </span>
                         </div>
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditLanguage(lang)}
-                            disabled={isLoading}
+                            disabled={loading}
+                            className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
                           >
                             Edit
                           </Button>
@@ -1306,8 +1504,8 @@ export default function AdminDashboard() {
                             variant="outline"
                             size="sm"
                             onClick={() => removeLanguage(lang.language)}
-                            disabled={isLoading}
-                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                            disabled={loading}
+                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 border-gray-200 dark:border-[#1F1F23]"
                           >
                             Remove
                           </Button>
@@ -1317,35 +1515,46 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="py-8 text-center">
-                    <Code className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-muted-foreground">No languages configured yet.</p>
+                    <Code className="h-10 w-10 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                    <p className="text-gray-600 dark:text-gray-400">No languages configured yet.</p>
                   </div>
                 )}
 
                 {!selectedLanguage && (
                   <div className="mt-4">
-                    <Label htmlFor="language">Add New Language</Label>
-                    <Select
-                      disabled={!!selectedLanguage || isSubmitting}
-                      onValueChange={handleLanguageSelect}
-                      defaultValue=""
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select a language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="select">Select a language</SelectItem>
-                        {["python", "javascript", "cpp", "go"]
-                          .filter((lang) => !languages.some((l) => l.language === lang))
-                          .map((lang) => (
-                            <SelectItem key={lang} value={lang}>
-                              {formatLanguageName(lang)}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <input type="hidden" {...register("language")} />
-                    {errors.language && <p className="text-sm text-red-500 mt-1">{errors.language.message}</p>}
+                    <Label htmlFor="language" className="text-gray-700 dark:text-gray-300">
+                      Add New Language
+                    </Label>
+                    <Controller
+                      name="language"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value)
+                            handleLanguageSelect(value)
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100">
+                            <SelectValue placeholder="Select a language" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23] text-gray-900 dark:text-gray-100">
+                            <SelectItem value="select">Select a language</SelectItem>
+                            {["python", "javascript", "cpp", "go"]
+                              .filter((lang) => !languages.some((l) => l.language === lang))
+                              .map((lang) => (
+                                <SelectItem key={lang} value={lang}>
+                                  {formatLanguageName(lang)}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.language && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.language.message}</p>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -1353,44 +1562,64 @@ export default function AdminDashboard() {
           </div>
 
           <div className="md:col-span-2">
-            <Card>
+            <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
               <CardHeader>
-                <CardTitle>
-                  {selectedLanguage
-                    ? `Edit ${formatLanguageName(selectedLanguage.language)}`
-                    : "Language Configuration"}
+                <CardTitle className="text-gray-900 dark:text-gray-100">
+                  {selectedLanguage ? `Edit ${formatLanguageName(selectedLanguage.language)}` : "Configure Language"}
                 </CardTitle>
-                <CardDescription>
-                  {selectedLanguage
-                    ? "Update the language configuration below"
-                    : "Configure code templates and validation for this language"}
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  {selectedLanguage ? "Update language settings" : "Add code templates and validation"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit(selectedLanguage ? updateLanguage : addLanguage)} className="space-y-4">
                   <div>
-                    <Label htmlFor="placeholder">Placeholder Code</Label>
-                    <Textarea
-                      id="placeholder"
-                      {...register("placeholder")}
-                      className="mt-1 min-h-24 font-mono text-sm"
-                      placeholder="Enter default code shown to users..."
+                    <Label htmlFor="placeholder" className="text-gray-700 dark:text-gray-300">
+                      Placeholder Code
+                    </Label>
+                    <Controller
+                      name="placeholder"
+                      control={control}
+                      render={({ field }) => (
+                        <Textarea
+                          id="placeholder"
+                          {...field}
+                          className="mt-1 min-h-24 font-mono text-sm border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          placeholder="Enter default code for users..."
+                        />
+                      )}
                     />
-                    {errors.placeholder && <p className="text-sm text-red-500 mt-1">{errors.placeholder.message}</p>}
+                    {errors.placeholder && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.placeholder.message}</p>
+                    )}
                   </div>
                   <div>
-                    <Label htmlFor="code">Validation Code</Label>
-                    <Textarea
-                      id="code"
-                      {...register("code")}
-                      className="mt-1 min-h-40 font-mono text-sm"
-                      placeholder="Enter code to validate submissions..."
+                    <Label htmlFor="code" className="text-gray-700 dark:text-gray-300">
+                      Validation Code
+                    </Label>
+                    <Controller
+                      name="code"
+                      control={control}
+                      render={({ field }) => (
+                        <Textarea
+                          id="code"
+                          {...field}
+                          className="mt-1 min-h-40 font-mono text-sm border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          placeholder="Enter validation code..."
+                        />
+                      )}
                     />
-                    {errors.code && <p className="text-sm text-red-500 mt-1">{errors.code.message}</p>}
+                    {errors.code && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.code.message}</p>
+                    )}
                   </div>
                   <div className="flex gap-3">
-                    <Button type="submit" disabled={isSubmitting || isLoading}>
-                      {(isSubmitting || isLoading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || loading}
+                      className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                    >
+                      {(isSubmitting || loading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       {selectedLanguage ? "Update Language" : "Add Language"}
                     </Button>
                     {selectedLanguage && (
@@ -1401,9 +1630,10 @@ export default function AdminDashboard() {
                           reset()
                           setSelectedLanguage(null)
                         }}
-                        disabled={isSubmitting || isLoading}
+                        disabled={isSubmitting || loading}
+                        className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
                       >
-                        Cancel Edit
+                        Cancel
                       </Button>
                     )}
                   </div>
@@ -1426,59 +1656,55 @@ export default function AdminDashboard() {
       setIsValidating(true)
       try {
         const res = await handleApiCall("get", "/validate", null, { problem_id: selectedProblem.problem_id })
-        setValidationResult(res)
+        setValidationResult({
+          success: res.success,
+          message: res.message || (res.success ? "All checks passed" : "Validation failed"),
+          error_type: res.error_type,
+        })
       } catch (error) {
-        setError("Validation failed")
+        setValidationResult({
+          success: false,
+          message: "Validation failed",
+          error_type: null,
+        })
       } finally {
         setIsValidating(false)
       }
     }
 
     return (
-      <div className="container mx-auto py-6">
+      <div>
         <div className="mb-6 flex items-center gap-2">
-          <Button variant="outline" onClick={() => setView("list")}>
+          <Button
+            variant="outline"
+            onClick={() => setView("list")}
+            className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+          >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Problems
+            Back
           </Button>
-          <h1 className="text-2xl font-bold">Validate: {selectedProblem?.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Validate: {selectedProblem?.title}</h1>
         </div>
 
-        {error && (
-          <Card className="border-red-200 bg-red-50 dark:bg-red-950/10 dark:border-red-900 mb-6">
-            <CardContent className="p-4 flex items-center gap-2 text-red-600 dark:text-red-400">
-              <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <p>{error}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {success && (
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950/10 dark:border-green-900 mb-6">
-            <CardContent className="p-4 flex items-center gap-2 text-green-600 dark:text-green-400">
-              <Check className="h-5 w-5 flex-shrink-0" />
-              <p>{success}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 gap-6">
+          <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
             <CardHeader>
-              <CardTitle>Problem Validation</CardTitle>
-              <CardDescription>Verify that the problem is correctly configured</CardDescription>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Problem Validation</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Check if the problem is correctly configured
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center py-8">
-                <RefreshCw className="h-12 w-12 mx-auto mb-4 text-primary/50" />
-                <p className="text-muted-foreground mb-6">
-                  Run validation to check if this problem is correctly configured with test cases and language support.
+                <RefreshCw className="h-12 w-12 mx-auto mb-4 text-zinc-900/50 dark:text-zinc-100/50" />
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Validate test cases and language support configuration.
                 </p>
                 <Button
                   onClick={onValidate}
                   disabled={isValidating || loading}
-                  className="flex items-center mx-auto"
                   size="lg"
+                  className="bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
                 >
                   {isValidating || loading ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1495,59 +1721,65 @@ export default function AdminDashboard() {
             <Card
               className={
                 validationResult.success
-                  ? "border-green-200 bg-green-50 dark:bg-green-950/10 dark:border-green-900"
-                  : "border-red-200 bg-red-50 dark:bg-red-950/10 dark:border-red-900"
+                  ? "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10"
+                  : "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/10"
               }
             >
               <CardHeader>
-                <CardTitle className={validationResult.success ? "text-green-600" : "text-red-600"}>
+                <CardTitle
+                  className={
+                    validationResult.success ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                  }
+                >
                   {validationResult.success ? "Validation Successful" : "Validation Failed"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                <div className="flex items-center gap-4">
                   {validationResult.success ? (
                     <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
                   ) : (
                     <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
                   )}
                   <div>
-                    <h3 className="font-medium text-lg">
-                      {validationResult.success ? "All checks passed" : "Validation issues found"}
-                    </h3>
-                    {validationResult.message && (
-                      <p className={validationResult.success ? "text-green-600" : "text-red-600"}>
-                        {validationResult.message}
+                    <p
+                      className={
+                        validationResult.success
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-600 dark:text-red-400"
+                      }
+                    >
+                      {validationResult.message}
+                    </p>
+                    {validationResult.error_type && (
+                      <p className="text-red-600 dark:text-red-400 text-sm">
+                        Error Type: {validationResult.error_type}
                       </p>
                     )}
                   </div>
                 </div>
-
-                {validationResult.error_type && (
-                  <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800">
-                    <h4 className="font-medium mb-2 text-red-600">Error Details</h4>
-                    <p className="text-red-600">
-                      <span className="font-medium">Error Type:</span> {validationResult.error_type}
-                    </p>
-                  </div>
-                )}
-
-                <div className="pt-4">
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={() => {
                       if (validationResult.success) {
                         setView("list")
-                      } else {
-                        if (validationResult.error_type?.includes("testcase")) {
-                          setView("testcases")
-                        } else if (validationResult.error_type?.includes("language")) {
-                          setView("languages")
-                        }
+                      } else if (validationResult.error_type?.includes("testcase")) {
+                        setView("testcases")
+                      } else if (validationResult.error_type?.includes("language")) {
+                        setView("languages")
                       }
                     }}
+                    className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
                   >
-                    {validationResult.success ? "Return to Problem List" : "Fix Issues"}
+                    {validationResult.success ? "Back to List" : "Fix Issues"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setView("api")}
+                    className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+                  >
+                    View API Response
                   </Button>
                 </div>
               </CardContent>
@@ -1558,76 +1790,87 @@ export default function AdminDashboard() {
     )
   }
 
-  // API Response View (Updated to show history)
+  // API Response View
   const ApiResponseView = () => (
-    <div className="container mx-auto py-6">
+    <div>
       <div className="mb-6 flex items-center gap-2">
-        <Button variant="outline" onClick={() => setView("list")}>
+        <Button
+          variant="outline"
+          onClick={() => setView("list")}
+          className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+        >
           <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Problems
+          Back
         </Button>
-        <h1 className="text-2xl font-bold">API Response History</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">API Response History</h1>
       </div>
 
-      <Card>
+      <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
         <CardHeader>
-          <CardTitle>API Call History</CardTitle>
-          <CardDescription>View all API requests and responses</CardDescription>
+          <CardTitle className="text-gray-900 dark:text-gray-100">API Call History</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
+            View all API requests and responses
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px] rounded-md border">
+          <ScrollArea className="h-[600px] rounded-md border border-gray-200 dark:border-[#1F1F23]">
             {apiHistory.length === 0 ? (
               <div className="p-8 text-center">
-                <Server className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-muted-foreground">No API calls recorded yet.</p>
+                <Server className="h-10 w-10 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                <p className="text-gray-600 dark:text-gray-400">No API calls recorded yet.</p>
               </div>
             ) : (
               <div className="space-y-4 p-4">
                 {apiHistory.map((entry, index) => (
-                  <div key={index} className="border rounded-md">
-                    <div className="flex justify-between items-center p-4 bg-muted/50">
+                  <div key={index} className="border rounded-md border-gray-200 dark:border-[#1F1F23]">
+                    <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-[#1F1F23]/50">
                       <div>
-                        <p className="font-medium">
+                        <p className="font-medium text-gray-900 dark:text-gray-200">
                           {entry.method.toUpperCase()} {entry.url}
                         </p>
-                        <p className="text-sm text-muted-foreground">{entry.timestamp}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{entry.timestamp}</p>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => navigator.clipboard.writeText(JSON.stringify(entry, null, 2))}
+                        className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="p-4 space-y-4">
                       <div>
-                        <h4 className="font-medium mb-2">Sent Data</h4>
+                        <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Sent Data</h4>
                         <SyntaxHighlighter
                           language="json"
                           style={tomorrow}
                           customStyle={{
                             padding: "12px",
                             fontSize: "13px",
-                            backgroundColor: "hsl(var(--muted))",
+                            backgroundColor: "transparent",
                             margin: 0,
                             borderRadius: "4px",
+                            border: "1px solid",
+                            borderColor: "rgba(229, 231, 235, 0.5)",
                           }}
                         >
                           {entry.sentData ? JSON.stringify(entry.sentData, null, 2) : "None"}
                         </SyntaxHighlighter>
                       </div>
                       <div>
-                        <h4 className="font-medium mb-2">Received Data</h4>
+                        <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Received Data</h4>
                         <SyntaxHighlighter
                           language="json"
                           style={tomorrow}
                           customStyle={{
                             padding: "12px",
                             fontSize: "13px",
-                            backgroundColor: "hsl(var(--muted))",
+                            backgroundColor: "transparent",
                             margin: 0,
                             borderRadius: "4px",
+                            border: "1px solid",
+                            borderColor: "rgba(229, 231, 235, 0.5)",
                           }}
                         >
                           {JSON.stringify(entry.receivedData, null, 2)}
@@ -1645,13 +1888,36 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div className="min-h-screen bg-background">
-      {view === "list" && <ProblemListView />}
-      {view === "details" && <ProblemDetailsView />}
-      {view === "testcases" && selectedProblem && <TestCasesView />}
-      {view === "languages" && selectedProblem && <LanguagesView />}
-      {view === "validation" && selectedProblem && <ValidationView />}
-      {view === "api" && <ApiResponseView />}
+    <div className="flex-1 overflow-auto p-6 bg-white dark:bg-[#0F0F12]">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Admin Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setView("list")}
+              className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+            >
+              Problems
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setView("api")}
+              className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+            >
+              API History
+            </Button>
+          </div>
+        </div>
+
+        {view === "list" && <ProblemListView />}
+        {view === "details" && <ProblemDetailsView />}
+        {view === "testcases" && selectedProblem && <TestCasesView />}
+        {view === "languages" && selectedProblem && <LanguagesView />}
+        {view === "validation" && selectedProblem && <ValidationView />}
+        {view === "api" && <ApiResponseView />}
+      </div>
     </div>
   )
 }
+

@@ -18,6 +18,8 @@ import SetUpTwoFactor from "@/pages-user/Auth/SetUpTwoFactor";
 import NotFound from "@/pages-common/NotFound";
 import SettingsPage from "@/pages-user/SettingsDashboard/SettingsPage";
 import AdminDashBoard from "./pages-admin/AdminDashboard";
+import ProblemSolvingStats from "./pages-user/Profile/components/ProblemSolvingStats";
+import ProblemsExecutor from "@/pages-problems/ProblemExecutor/ProblemExecutor"
 
 function App() {
   return (
@@ -42,10 +44,14 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />}></Route>
 
 
-            <Route path="/settings" element={<SettingsPage />}></Route>            
+            <Route path="/settings" element={<SettingsPage />}></Route>
 
             <Route path="*" element={<NotFound />}></Route>
-            <Route path ="/dashboard" element={<AdminDashBoard/>}></Route>
+            <Route path="/dashboard" element={<AdminDashBoard />}></Route>
+
+
+
+            <Route path="/problems/one" element={<ProblemsExecutor />}></Route>
           </Routes>
         </Router>
         {/* </Provider> */}

@@ -26,7 +26,9 @@ const NavHeader = ({
   pages?: { name: string; path: string }[];
   name: string;
   logout: boolean;
-}) => {
+},
+className: string
+) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -71,7 +73,7 @@ const NavHeader = ({
 
   return (
     <>
-      <header className="flex justify-between items-center px-4 py-2 bg-[#121212] text-white w-full relative z-10">
+      <header className="flex justify-between items-center px-4 py-2 bg-[#121212] text-white w-full relative z-10 ">
         {/* Logo */}
         <div className="text-xl font-bold font-coinbase-display hover:text-[#3CE7B2] hover:cursor-crosshair transition-colors duration-200">
           xcode{" "}

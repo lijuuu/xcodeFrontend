@@ -14,12 +14,15 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Output from '@/pages-common/Compiler/components/Output';
 import CodeEditor from '@/pages-common/Compiler/components/CodeEditor';
 import FileSystem from '@/pages-common/Compiler/components/FileSystem';
+import NavHeader from "@/components/sub/NavHeader"
+
 import {
   ResizablePanel,
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { SiJavascript, SiPython, SiGo, SiCplusplus } from 'react-icons/si';
+import { clear } from 'console';
 
 interface File {
   id: string;
@@ -162,20 +165,43 @@ function OnlineCompilerPage() {
     }
   };
 
+  const [showToolTip, setShowToolTip] = useState(false);
+
+
   return (
+
     <SidebarProvider>
       <FileSystem />
       <div className="bg-background transition-colors duration-300 h-screen w-full flex flex-col">
+        {/* <NavHeader className="" /> */}
+
         {/* Header - Enhanced styling */}
         <div className="flex items-center justify-between border-b border-border/50 p-2 h-12 bg-muted/20">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="h-8 w-8 p-0 hover:bg-muted rounded-md">
               <Menu className="h-4 w-4" />
             </SidebarTrigger>
-            <div className="flex items-center">
-              <span className="font-medium text-foreground">xcode</span>
-              <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">compiler</span>
+            {/* Text with tooltip */}
+            <div
+              className="relative flex items-center cursor-pointer"
+              onMouseEnter={() => setShowToolTip(true)}
+              onMouseLeave={() => setShowToolTip(false)}
+              onClick={() => (window.location.href = "/")}
+            >
+              <span className="font-medium text-foreground relative">xcode</span>
+
+              {/* Tooltip (now appears below) */}
+              {showToolTip && (
+                <div className="absolute w-40 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md shadow-md mt-1">
+                  Want to go back to home? Click here
+                </div>
+              )}
+
+              <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">
+                compiler
+              </span>
             </div>
+
           </div>
 
           <div className="flex items-center gap-1 md:gap-2">
