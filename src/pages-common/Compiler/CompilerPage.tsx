@@ -172,7 +172,7 @@ function OnlineCompilerPage() {
 
     <SidebarProvider>
       <FileSystem />
-      <div className="bg-background transition-colors duration-300 h-screen w-full flex flex-col">
+      <div className="bg-background transition-colors duration-300 h-screen w-full flex flex-col overflow-hidden">
         {/* <NavHeader className="" /> */}
 
         {/* Header - Enhanced styling */}
