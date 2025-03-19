@@ -127,7 +127,7 @@ function Output({ className }: OutputProps) {
     if (!text) return null;
     const className = cn(
       'py-1 px-4', // Added padding for readability
-      type === 'error' && 'text-red-400',
+      type === 'error' && 'text-red-400 whitespace-pre-line',
       type === 'status' && 'text-yellow-400',
       type === 'output' && 'text-gray-400',
       type === 'hints' && 'text-blue-200'
@@ -291,7 +291,7 @@ function Output({ className }: OutputProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="text-sm font-mono whitespace-pre-wrap"
+                  className="text-sm font-mono whitespace-pre-line"
                 >
                   {renderMarkdownOutput(result.output, 'output')}
                 </motion.div>
@@ -301,7 +301,7 @@ function Output({ className }: OutputProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="flex justify-center items-center h-full text-muted-foreground"
+                  className="flex justify-center  items-center h-full text-muted-foreground"
                 >
                   <p>No output available.</p>
                 </motion.div>
@@ -322,7 +322,7 @@ function Output({ className }: OutputProps) {
                         {isLongContent(result.status_message) && (
                           <button
                             onClick={() => setIsErrorExpanded(!isErrorExpanded)}
-                            className="text-muted-foreground hover:text-foreground"
+                            className="text-muted-foreground hover:text-foreground "
                           >
                             {isErrorExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
@@ -340,14 +340,14 @@ function Output({ className }: OutputProps) {
                         {isLongContent(result.error) && (
                           <button
                             onClick={() => setIsErrorExpanded(!isErrorExpanded)}
-                            className="text-muted-foreground hover:text-foreground"
+                            className="text-muted-foreground hover:text-foreground whitespace-pre-line"
                           >
                             {isErrorExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
                         )}
                       </div>
                       {(isErrorExpanded || !isLongContent(result.error)) && (
-                        <div className="pl-4 border-l-4 border-red-500">
+                        <div className="pl-4 border-l-4 border-red-500 whitespace-pre-line">
                           {renderMarkdownOutput(result.error, 'error')}
                         </div>
                       )}
