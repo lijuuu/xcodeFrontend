@@ -68,26 +68,21 @@ const CodeEditor: React.FC<{ className?: string, isMobile: boolean }> = ({ class
         <div className="flex space-x-2">
           {
             !isMobile && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFontSize(fontSize + 1)}
-                  className="border-border/50 hover:bg-muted"
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  Increase Font Size
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFontSize(fontSize - 1)}
-                  className="border-border/50 hover:bg-muted"
-                >
-                  <Minus className="h-3.5 w-3.5 mr-1" />
-                  Decrease Font Size
-                </Button>
-              </>
+              <div className="flex items-center gap-2 opacity-60 hover:opacity-85">
+                <label htmlFor="font-size-slider" className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  Font Size:
+                </label>
+                <input
+                  id="font-size-slider"
+                  type="range"
+                  min="8"
+                  max="30"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(Number(e.target.value))}
+                  className="w-40 h-2 bg-black dark:bg-white rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{fontSize}px</span>
+              </div>
             )
           }
           <Button
