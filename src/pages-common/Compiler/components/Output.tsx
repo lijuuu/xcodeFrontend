@@ -73,12 +73,12 @@ function Output({ className }: OutputProps) {
                     ${code}
                     \`\`\`
                     ${errorContext ? `The code has the following error: ${errorContext}` : ''}
-                    Provide logical answers and exact code to fix or replace within a few lines. Format in markdown with code blocks.`,
+                    Provide logical answers and exact code to fix or replace within a few lines. Format in markdown with code blocks within 2500 tokens`,
                   },
                 ],
               },
             ],
-            generationConfig: { temperature: 0.4, maxOutputTokens: 256 },
+            generationConfig: { temperature: 0.4, maxOutputTokens: 3000 },
             safetySettings: [],
           }),
         }
@@ -144,7 +144,7 @@ function Output({ className }: OutputProps) {
                     type === 'error' && 'text-red-400',
                     type === 'status' && 'text-yellow-400',
                     type === 'output' && 'text-gray-400',
-                    type === 'hints' && 'bg-blue-500/20 text-blue-200',
+                    type === 'hints' && 'bg-blue-300/20 text-zinc-200',
                     className
                   )}
                   {...props}
@@ -157,7 +157,7 @@ function Output({ className }: OutputProps) {
               return (
                 <pre
                   className={cn(
-                    'bg-muted/30 p-2 rounded-md overflow-x-hidden my-2 w-full', // Prevent side overflow
+                    'bg-muted/30 p-2 rounded-md overflow-x-auto my-2', 
                     type === 'error' && 'bg-red-500/10',
                     type === 'status' && 'bg-yellow-500/10',
                     type === 'hints' && 'bg-blue-500/20'
@@ -201,7 +201,7 @@ function Output({ className }: OutputProps) {
                   {loadingHints ? 'Loading...' : 'Suggest Hints'}
                 </button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl h-auto">
+              <DialogContent className="w-[95vw] max-w-[90vw] sm:max-w-[85vw] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <span>Code Hints</span>
@@ -215,7 +215,7 @@ function Output({ className }: OutputProps) {
                     </button>
                   </DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="max-h-[50vh] p-4 overflow-auto">
+                <ScrollArea className="max-h-[60vh] sm:max-h-[65vh] md:max-h-[70vh] lg:max-h-[75vh] p-4 overflow-auto">
                   {loadingHints ? (
                     <div className="space-y-2">
                       <Skeleton className="w-full h-4 rounded-full bg-blue-200/30 animate-pulse" />
@@ -228,7 +228,7 @@ function Output({ className }: OutputProps) {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
-                      className="text-sm w-[85%]"
+                      className="text-sm"
                     >
                       {renderMarkdownOutput(hints as string, 'hints')}
                     </motion.div>
