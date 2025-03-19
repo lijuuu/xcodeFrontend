@@ -1,16 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RootState } from '@/redux/store';
-import { Copy, CheckCheck } from 'lucide-react';
+import { Copy, CheckCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 
-function Output({ className }: { className?: string }) {
-  const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler);
-  const [copied, setCopied] = React.useState(false);
+// Define the result type based on expected structure
+interface CompilerResult {
+  success?: boolean;
+  output?: string;
+  status_message?: string;
+  error?: string;
+  execution_time?: string;
+}
+
+// Define props interface
+interface OutputProps {
+  className?: string;
+}
+
+function Output({ className }: OutputProps) {
+  const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler) as {
+    loading: boolean;
+    result: CompilerResult;
+  };
+  const [copied, setCopied] = useState(false);
+  const [isErrorExpanded, setIsErrorExpanded] = useState(false);
 
   const handleCopy = async () => {
     const textToCopy = result.output || result.status_message || result.error || '';
@@ -23,6 +41,28 @@ function Output({ className }: { className?: string }) {
       toast.error('Failed to copy');
     }
   };
+
+  // Enhanced error/output formatting
+  const formatOutput = (text: string | undefined, type: 'output' | 'error' | 'status') => {
+    if (!text) return null;
+    const lines = text.split('\n').filter((line) => line.trim());
+    return lines.map((line, index) => (
+      <div
+        key={index}
+        className={cn(
+          'py-1',
+          type === 'error' && 'text-red-400',
+          type === 'status' && 'text-yellow-400',
+          type === 'output' && 'text-red-400'
+        )}
+      >
+        {line}
+      </div>
+    ));
+  };
+
+  // Determine if content is long enough to warrant collapsing
+  const isLongContent = (text: string | undefined) => (text?.split('\n').length || 0) > 5;
 
   return (
     <div className={cn('h-full bg-background', className)}>
@@ -71,23 +111,23 @@ function Output({ className }: { className?: string }) {
                 exit={{ opacity: 0 }}
                 className="flex items-start h-full"
               >
-                <div className="flex flex-col gap-2">
-                  <Skeleton className="w-[150px] h-[20px] mb-2 rounded-full bg-muted" />
-                  <Skeleton className="w-[100px] h-[20px] mb-2 rounded-full bg-muted" />
-                  <Skeleton className="w-[170px] h-[20px] rounded-full bg-muted" />
+                <div className="w-full space-y-2">
+                  <Skeleton className="w-3/4 h-4 rounded-full bg-muted animate-pulse" />
+                  <Skeleton className="w-1/2 h-4 rounded-full bg-muted animate-pulse delay-200" />
+                  <Skeleton className="w-2/3 h-4 rounded-full bg-muted animate-pulse delay-400" />
                 </div>
               </motion.div>
             ) : result.success === true ? (
               result.output ? (
-                <motion.pre
+                <motion.div
                   key="output"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="text-sm font-mono whitespace-pre-wrap text-foreground"
+                  className="text-sm font-mono whitespace-pre-wrap"
                 >
-                  <p>{result.output}</p>
-                </motion.pre>
+                  {formatOutput(result.output, 'output')}
+                </motion.div>
               ) : (
                 <motion.div
                   key="no-output"
@@ -105,9 +145,62 @@ function Output({ className }: { className?: string }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="flex justify-center items-center h-full text-red-400"
+                className="text-sm font-mono"
               >
-                <p>{result.output || result.status_message || result.error || 'An error occurred.'}</p>
+                <div className="space-y-2">
+                  {result.status_message && (
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-400 font-semibold">Status Message:</span>
+                        {isLongContent(result.status_message) && (
+                          <button
+                            onClick={() => setIsErrorExpanded(!isErrorExpanded)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            {isErrorExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      {(isErrorExpanded || !isLongContent(result.status_message)) && (
+                        <div className="pl-4">{formatOutput(result.status_message, 'status')}</div>
+                      )}
+                    </div>
+                  )}
+                  {result.error && (
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-400 font-semibold">Error:</span>
+                        {isLongContent(result.error) && (
+                          <button
+                            onClick={() => setIsErrorExpanded(!isErrorExpanded)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            {isErrorExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      {(isErrorExpanded || !isLongContent(result.error)) && (
+                        <div className="pl-4 border-l-4 border-red-500">
+                          {formatOutput(result.error, 'error')}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {result.output && (
+                    <div>
+                      <span className="text-foreground font-semibold">Output:</span>
+                      <div className="pl-4">{formatOutput(result.output, 'output')}</div>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             ) : (
               <motion.div

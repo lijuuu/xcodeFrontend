@@ -18,17 +18,12 @@ const defaultPages = [
   { name: "Settings", path: "/settings" },
 ];
 
-const NavHeader = ({
-  pages = defaultPages,
-  name,
-  logout,
-}: {
+const NavHeader = ({ pages = defaultPages, name, logout, className }: {
   pages?: { name: string; path: string }[];
   name: string;
   logout: boolean;
-},
-className: string
-) => {
+  className?: string;
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

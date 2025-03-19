@@ -15,21 +15,6 @@ import SimpleHeader from "@/components/sub/AuthHeader";
 import axios from "axios";
 import { handleError, handleInfo } from "@/components/sub/ErrorToast";
 
-// --- Form Schema ---
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Password must have uppercase, lowercase, number, and special character"
-    )
-    .max(20, "Password must be less than 20 characters"),
-  code: z.string().min(6, "Code must be 6 characters").optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
@@ -52,6 +37,31 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
+
+  const loginSchema = React.useMemo(
+    () =>
+      z.object({
+        email: z.string().min(1, "Email is required").email("Invalid email address"),
+        password: z
+          .string()
+          .min(6, "Password must be at least 6 characters")
+          .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+            "Password must have uppercase, lowercase, number, and special character"
+          )
+          .max(20, "Password must be less than 20 characters"),
+        code: twoFactorEnabled
+          ? z.string().min(6, "Code must be 6 characters").nonempty("2FA code is required")
+          : z.string().optional(),
+      }),
+    [twoFactorEnabled]
+  );
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+
   const {
     register,
     handleSubmit,
@@ -63,7 +73,6 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
 
   const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
 
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
   // Watch the email field from the form
   const formEmail = watch("email");
@@ -110,6 +119,8 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
         .get(`http://localhost:7000/api/v1/auth/2fa/status?email=${formEmail}`)
         .then((res: any) => {
           setTwoFactorEnabled(res.data.payload.isEnabled);
+          console.log(twoFactorEnabled)
+
         })
         .catch((err: any) => {
           setTwoFactorEnabled(false);
@@ -117,6 +128,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
         });
     } else {
       setTwoFactorEnabled(false);
+      console.log(twoFactorEnabled)
     }
   }, [formEmail]);
 
@@ -126,7 +138,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
       <div className="bg-[#3CE7B2] h-2" style={{ width: "100%" }} />
       <SimpleHeader page="/signup" name="Sign Up" />
       <div className="flex justify-center items-center flex-1">
-        { loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
+        {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
         <div
           className={`w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl shadow-lg p-6 hover:border-gray-700 transition-all duration-300 ${className}`}
           {...props}
