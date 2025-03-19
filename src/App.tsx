@@ -20,6 +20,7 @@ import SettingsPage from "@/pages-user/SettingsDashboard/SettingsPage";
 import AdminDashBoard from "./pages-admin/AdminDashboard";
 import ProblemSolvingStats from "./pages-user/Profile/components/ProblemSolvingStats";
 import ProblemsExecutor from "@/pages-problems/ProblemExecutor/ProblemExecutor"
+// import AdminDashboardV2 from "./pages-admin/AdminDashboardV2";
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
 
             <Route path="*" element={<NotFound />}></Route>
             <Route path="/dashboard" element={<AdminDashBoard />}></Route>
+            {/* <Route path="/dashboard2" element={<AdminDashboardV2 />}></Route> */}
+
 
 
 
