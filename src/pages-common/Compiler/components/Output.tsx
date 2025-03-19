@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
@@ -8,7 +8,7 @@ import { RootState } from '@/redux/store';
 import { Copy, CheckCheck, ChevronDown, ChevronUp, LightbulbIcon, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'; // Assuming shadcn/ui dialog
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 // Define the result type based on expected structure
 interface CompilerResult {
@@ -109,6 +109,20 @@ function Output({ className }: OutputProps) {
     fetchHints(); // Fetch new hints
   };
 
+  // Close modal with Esc key
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isHintsModalOpen) {
+        setIsHintsModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isHintsModalOpen]);
+
   const renderMarkdownOutput = (text: string | undefined, type: 'output' | 'error' | 'status' | 'hints') => {
     if (!text) return null;
     const className = cn(
@@ -191,18 +205,17 @@ function Output({ className }: OutputProps) {
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <span>Code Hints</span>
-                   
                     <button
                       onClick={handleRefreshHints}
                       disabled={loadingHints}
                       className="p-2 hover:bg-blue-500/20 rounded-md transition-colors"
                       title="Refresh Hints"
                     >
-                       <RefreshCw className="h-4 w-4 text-blue-600" />
+                      <RefreshCw className="h-4 w-4 text-blue-600" />
                     </button>
                   </DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="max-h-[50vh] p-4 overflow-auto ">
+                <ScrollArea className="max-h-[50vh] p-4 overflow-auto">
                   {loadingHints ? (
                     <div className="space-y-2">
                       <Skeleton className="w-full h-4 rounded-full bg-blue-200/30 animate-pulse" />
