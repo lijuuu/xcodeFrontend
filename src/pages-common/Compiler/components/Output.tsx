@@ -9,6 +9,7 @@ import { Copy, CheckCheck, ChevronDown, ChevronUp, LightbulbIcon, RefreshCw } fr
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import ReactJson from 'react-json-view';
 
 // Define the result type based on expected structure
 interface CompilerResult {
@@ -24,21 +25,30 @@ interface OutputProps {
   className?: string;
 }
 
+// Utility function to check if a string is valid JSON
+const isValidJson = (str: string | undefined): boolean => {
+  if (!str) return false;
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 function Output({ className }: OutputProps) {
   const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler) as {
     loading: boolean;
     result: CompilerResult;
   };
 
-  const { code, language, files, currentFile } = useSelector(
-    (state: RootState) => state.xCodeCompiler
-  );
+  const { code, language } = useSelector((state: RootState) => state.xCodeCompiler);
 
   const [copied, setCopied] = useState(false);
   const [isErrorExpanded, setIsErrorExpanded] = useState(false);
   const [hints, setHints] = useState<string | null>("");
   const [loadingHints, setLoadingHints] = useState(false);
-  const [isHintsModalOpen, setIsHintsModalOpen] = useState(false); // Modal state for hints
+  const [isHintsModalOpen, setIsHintsModalOpen] = useState(false);
 
   const handleCopy = async () => {
     const textToCopy = result.output || result.status_message || result.error || '';
@@ -54,7 +64,6 @@ function Output({ className }: OutputProps) {
 
   const fetchHints = async () => {
     setLoadingHints(true);
-
     try {
       const errorContext = result.error || result.status_message || '';
       const response = await fetch(
@@ -98,35 +107,27 @@ function Output({ className }: OutputProps) {
   };
 
   const handleShowHints = () => {
-    if (!hints) {
-      fetchHints(); // Fetch hints if not already fetched
-    }
-    setIsHintsModalOpen(true); // Open the modal
+    if (!hints) fetchHints();
+    setIsHintsModalOpen(true);
   };
 
   const handleRefreshHints = () => {
-    setHints(null); // Clear current hints
-    fetchHints(); // Fetch new hints
+    setHints(null);
+    fetchHints();
   };
 
-  // Close modal with Esc key
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isHintsModalOpen) {
-        setIsHintsModalOpen(false);
-      }
+      if (event.key === 'Escape' && isHintsModalOpen) setIsHintsModalOpen(false);
     };
-
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isHintsModalOpen]);
 
   const renderMarkdownOutput = (text: string | undefined, type: 'output' | 'error' | 'status' | 'hints') => {
     if (!text) return null;
     const className = cn(
-      'py-1 px-4', // Added padding for readability
+      'py-1 px-4',
       type === 'error' && 'text-red-400 whitespace-pre-line',
       type === 'status' && 'text-yellow-400',
       type === 'output' && 'text-gray-400',
@@ -157,7 +158,7 @@ function Output({ className }: OutputProps) {
               return (
                 <pre
                   className={cn(
-                    'bg-muted/30 p-2 rounded-md overflow-x-auto my-2', 
+                    'bg-muted/30 p-2 rounded-md overflow-x-auto my-2',
                     type === 'error' && 'bg-red-500/10',
                     type === 'status' && 'bg-yellow-500/10',
                     type === 'hints' && 'bg-blue-500/20'
@@ -175,6 +176,17 @@ function Output({ className }: OutputProps) {
       </div>
     );
   };
+
+  const renderJsonOutput = (jsonStr: string) => (
+    <ReactJson
+      src={JSON.parse(jsonStr)}
+      theme="monokai" // Choose a theme (e.g., "monokai", "rjv-default")
+      collapsed={false} // Start expanded; set to true to collapse by default
+      displayDataTypes={false} // Hide data type labels if desired
+      displayObjectSize={false} // Hide object/array size if desired
+      style={{ padding: '16px', background: 'transparent' }}
+    />
+  );
 
   const isLongContent = (text: string | undefined) => (text?.split('\n').length || 0) > 5;
 
@@ -269,7 +281,6 @@ function Output({ className }: OutputProps) {
           </div>
         </div>
 
-        {/* Main output area */}
         <ScrollArea className="flex-1 p-4 bg-muted/20 rounded-md border border-border/50 overflow-x-hidden">
           <AnimatePresence mode="wait">
             {loading ? (
@@ -293,7 +304,11 @@ function Output({ className }: OutputProps) {
                   transition={{ duration: 0.3 }}
                   className="text-sm font-mono whitespace-pre-line"
                 >
-                  {renderMarkdownOutput(result.output, 'output')}
+                  {isValidJson(result.output) ? (
+                    renderJsonOutput(result.output)
+                  ) : (
+                    renderMarkdownOutput(result.output, 'output')
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
@@ -301,7 +316,7 @@ function Output({ className }: OutputProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="flex justify-center  items-center h-full text-muted-foreground"
+                  className="flex justify-center items-center h-full text-muted-foreground"
                 >
                   <p>No output available.</p>
                 </motion.div>
@@ -322,7 +337,7 @@ function Output({ className }: OutputProps) {
                         {isLongContent(result.status_message) && (
                           <button
                             onClick={() => setIsErrorExpanded(!isErrorExpanded)}
-                            className="text-muted-foreground hover:text-foreground "
+                            className="text-muted-foreground hover:text-foreground"
                           >
                             {isErrorExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
@@ -355,9 +370,13 @@ function Output({ className }: OutputProps) {
                   )}
                   {result.output && (
                     <div className="pl-4">
-                      {renderMarkdownOutput(
-                        result.output.replaceAll('/app/temp/code', 'main'),
-                        result.success ? 'output' : 'error'
+                      {isValidJson(result.output) ? (
+                        renderJsonOutput(result.output)
+                      ) : (
+                        renderMarkdownOutput(
+                          result.output.replaceAll('/app/temp/code', 'main'),
+                          result.success ? 'output' : 'error'
+                        )
                       )}
                     </div>
                   )}
