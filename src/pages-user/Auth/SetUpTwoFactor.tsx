@@ -29,8 +29,8 @@ interface ErrorResponse {
   }
 }
 
-// UserProfile Interface
-interface UserProfile {
+// user Interface
+interface user {
   userID: string;
   userName: string;
   firstName: string;
@@ -79,11 +79,16 @@ const SetUpTwoFactor: React.FC<any> = ({ user }) => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
-  const {userProfile} = user;
+  if (!user){
+    return (<>
+    <p>Failed to load users</p>
+    </>)
+  }
+  // const {user} = user;
 
   const fetch2FAStatus = async () => {
-    if (!userProfile?.email) {
-      console.log("user ",userProfile.email)
+    if (!user?.email) {
+      console.log("user ",user?.email)
       setError('User email not available')
       toast.error('User email not available', { style: { background: "#1D1D1D", color: "#FFFFFF" } })
       return
@@ -94,7 +99,7 @@ const SetUpTwoFactor: React.FC<any> = ({ user }) => {
 
     try {
       await delay(1000)
-      const response = await axiosInstance.get<SuccessResponse>(`/auth/2fa/status?email=${userProfile.email}`)
+      const response = await axiosInstance.get<SuccessResponse>(`/auth/2fa/status?email=${user.email}`)
       if (response.data.success && response.status === 200) {
         const { isEnabled, message } = response.data.payload
         setStatusResponse(`2FA Enabled: ${isEnabled}${message ? `\nMessage: ${message}` : ''}`)
@@ -113,7 +118,7 @@ const SetUpTwoFactor: React.FC<any> = ({ user }) => {
   // Prefetch 2FA status on component mount
   useEffect(() => {
     fetch2FAStatus()
-  }, [userProfile.email])
+  }, [user.email])
 
   const handleGenerate = async () => {
     if (!password) {

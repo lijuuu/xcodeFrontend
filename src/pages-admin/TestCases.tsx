@@ -20,21 +20,10 @@ const testCaseSchema = z.object({
   expected: z.string().min(1, "Expected output is required"),
 });
 const bulkTestCaseSchema = z.object({
-  bulkJson: z.string().min(1, "JSON is required").refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return z.object({
-          run: z.array(z.object({ input: z.string(), expected: z.string() })).optional(),
-          submit: z.array(z.object({ input: z.string(), expected: z.string() })).optional(),
-        }).refine((data) => (data.run && data.run.length > 0) || (data.submit && data.submit.length > 0), { message: "At least one run or submit test case is required" }).safeParse(parsed).success;
-      } catch {
-        return false;
-      }
-    },
-    "Invalid JSON format or structure"
-  ),
+  bulkJson: z.string().min(1, "JSON is required")
 });
+
+
 
 type TestCaseFormData = z.infer<typeof testCaseSchema>
 
@@ -78,19 +67,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
   } = useForm<{ bulkJson: string }>({
     resolver: zodResolver(
       z.object({
-        bulkJson: z
-          .string()
-          .min(1, "JSON is required")
-          .refine((val) => {
-            try {
-              const parsed = JSON.parse(val)
-              return bulkTestCaseSchema.safeParse(parsed).success
-            } catch {
-              return false
-            }
-          }, "Invalid JSON format or structure"),
-      }),
-    ),
+        bulkJson: z.string().min(1, "JSON is required")}),),
     defaultValues: { bulkJson: "" },
     mode: "onChange",
   })
@@ -150,7 +127,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
     setSelectedTestCases(new Set());
   };
 
-  
+
   const onBulkUpload = async (data: { bulkJson: string }) => {
     if (!selectedProblem) return setError("Please select or create a problem first.")
     const parsedJson = JSON.parse(data.bulkJson)
@@ -227,7 +204,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                   variant="destructive"
                   size="sm"
                   onClick={onBulkDelete}
-                  disabled={loading}
+                  // disabled={loading}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />

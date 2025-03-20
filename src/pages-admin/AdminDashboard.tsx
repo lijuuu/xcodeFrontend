@@ -323,7 +323,7 @@ export default function AdminDashboard() {
   }); */}
         {view === "details" && <ProblemDetailsView selectedProblem={selectedProblem} setView={setView} handleApiCall={handleApiCall} loading={loading} setSelectedProblem={setSelectedProblem} />}
         {/* {view === "list" && <ProblemListView />} */}
-        {view === "testcases" && selectedProblem && <TestCasesView selectedProblem={selectedProblem} setError={setError} handleApiCall={handleApiCall} setView={setView} loading />}
+        {view === "testcases" && selectedProblem && <TestCasesView selectedProblem={selectedProblem} setError={setError} handleApiCall={handleApiCall} setView={setView} loading={loading} />}
         {view === "languages" && selectedProblem && <LanguagesView selectedProblem={selectedProblem} handleApiCall={handleApiCall} setView={setView} />}
         {view === "validation" && selectedProblem && <ValidationView handleApiCall={handleApiCall} selectedProblem={selectedProblem} setView={setView} loading={loading} />}
         {view === "api" && <ApiResponseHistory apiHistory={apiHistory} setView={setView} />}
