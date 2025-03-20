@@ -9,9 +9,17 @@ import { Copy, CheckCheck, ChevronDown, ChevronUp, LightbulbIcon, RefreshCw } fr
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import ReactJson from 'react-json-view';
+import JSONView from '@uiw/react-json-view';
+import { lightTheme } from '@uiw/react-json-view/light';
+import { darkTheme } from '@uiw/react-json-view/dark';
+import { nordTheme } from '@uiw/react-json-view/nord';
+import { githubLightTheme } from '@uiw/react-json-view/githubLight';
+import { githubDarkTheme } from '@uiw/react-json-view/githubDark';
+import { vscodeTheme } from '@uiw/react-json-view/vscode';
+import { gruvboxTheme } from '@uiw/react-json-view/gruvbox';
+import { monokaiTheme } from '@uiw/react-json-view/monokai';
+import { basicTheme } from '@uiw/react-json-view/basic';
 
-// Define the result type based on expected structure
 interface CompilerResult {
   success?: boolean;
   output?: string;
@@ -20,12 +28,10 @@ interface CompilerResult {
   execution_time?: string;
 }
 
-// Define props interface
 interface OutputProps {
   className?: string;
 }
 
-// Utility function to check if a string is valid JSON
 const isValidJson = (str: string | undefined): boolean => {
   if (!str) return false;
   try {
@@ -178,13 +184,14 @@ function Output({ className }: OutputProps) {
   };
 
   const renderJsonOutput = (jsonStr: string) => (
-    <ReactJson
-      src={JSON.parse(jsonStr)}
-      theme="monokai" // Choose a theme (e.g., "monokai", "rjv-default")
-      collapsed={false} // Start expanded; set to true to collapse by default
-      displayDataTypes={false} // Hide data type labels if desired
-      displayObjectSize={false} // Hide object/array size if desired
-      style={{ padding: '16px', background: 'transparent' }}
+    <JSONView
+      value={JSON.parse(jsonStr)}
+      style={nordTheme}
+      displayObjectSize={false} // Show array/object size
+      displayDataTypes={false}  // Show data type labels
+      indentWidth={20}         // Increase indent for readability
+      enableClipboard={false}
+      shortenTextAfterLength={0} // Disable text shortening
     />
   );
 
