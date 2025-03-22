@@ -87,6 +87,70 @@
   }
 }
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-editor-bg text-editor-text antialiased;
+  }
+
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #1e1e1e;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #403E43;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+  }
+
+  /* Animations */
+  .animate-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .animate-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 400ms, transform 400ms;
+  }
+
+  /* Code editor specific styles */
+  .monaco-editor .margin {
+    background-color: #1e1e1e !important;
+  }
+  
+  .monaco-editor .monaco-scrollable-element .scrollbar {
+    background-color: #1e1e1e !important;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply backdrop-blur-sm bg-editor-darker/80 border border-editor-border rounded-lg;
+  }
+  
+  .emerald-border {
+    @apply border border-editor-accent/30 transition-all duration-300 hover:border-editor-accent;
+  }
+  
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-editor-accent/50 focus:ring-offset-2 focus:ring-offset-editor-bg;
+  }
+}
+
 .bg-night-black {
   background-color: var(--night-black);
 }
@@ -133,17 +197,6 @@
 
 .font-coinbase-sans {
   font-family: "CoinbaseSans", sans-serif;
-}
-
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-black text-foreground;
-  }
 }
 
 

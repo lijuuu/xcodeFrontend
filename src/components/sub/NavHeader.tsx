@@ -6,17 +6,17 @@ import LogoutModal from "./Logout";
 import { LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-// Custom Modal Component for Logout
 
 const defaultPages = [
   { name: "Home", path: "/home" },
   { name: "Profile", path: "/" },
-  { name: "Problems", path: "/problems" },
+  { name: "Problems", path: "/problemset" },
   { name: "Compiler", path: "/compiler" },
   { name: "Leaderboard", path: "/leaderboard" },
   { name: "Chat", path: "/chat" },
   { name: "Settings", path: "/settings" },
 ];
+
 
 const NavHeader = ({ pages = defaultPages, name, logout, className }: {
   pages?: { name: string; path: string }[];
@@ -27,14 +27,15 @@ const NavHeader = ({ pages = defaultPages, name, logout, className }: {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("/");
+  const [currentPage, setCurrentPage] = useState<{ name: string; path: string }>({ name: "Unknown", path: "/" });
   const dispatch = useDispatch();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    const path = location.pathname;
-    setCurrentPage(path);
+    const currentPage = defaultPages.find(({ path }) => location.pathname.toLowerCase().includes(path));
+    setCurrentPage(currentPage || { name: "Unknown", path: location.pathname });
   }, [location.pathname]);
+
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -108,7 +109,7 @@ const NavHeader = ({ pages = defaultPages, name, logout, className }: {
           {pages.map((page) => (
             <div
               key={page.name}
-              className={`text-xl md:text-sm font-coinbase-sans hover:text-[#3CE7B2] ml-0 md:ml-16 hover:cursor-pointer ${currentPage === page.path ? "text-[#3CE7B2]" : "text-white"
+              className={`text-xl md:text-sm font-coinbase-sans hover:text-[#3CE7B2] ml-0 md:ml-16 hover:cursor-pointer ${currentPage.path === page.path ? "text-[#3CE7B2]" : "text-white"
                 } py-2 md:py-0 transition-colors duration-200`}
               onClick={() => {
                 navigate(page.path);

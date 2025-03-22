@@ -13,14 +13,12 @@ import AdminLoginForm from "./pages-admin/AdminLogin";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import ForgotPassword from "./pages-user/Auth/ForgotPassword";
 import ResetPassword from "./pages-user/Auth/ResetPassword";
-import AddProblems from "@/pages-user/Problem/AddProblems";
-import SetUpTwoFactor from "@/pages-user/Auth/SetUpTwoFactor";
 import NotFound from "@/pages-common/NotFound";
 import SettingsPage from "@/pages-user/SettingsDashboard/SettingsPage";
 import AdminDashBoard from "./pages-admin/AdminDashboard";
-import ProblemSolvingStats from "./pages-user/Profile/components/ProblemSolvingStats";
-import ProblemsExecutor from "@/pages-problems/ProblemExecutor/ProblemExecutor"
-// import AdminDashboardV2 from "./pages-admin/AdminDashboardV2";
+import ProblemPlayground from "@/pages-problems/ProblemPlayground/ProblemPlayground"
+import ProblemListingHome from "@/pages-problems/ProblemListingsHome/ProblemListings"
+import "./App.css"
 
 function App() {
   return (
@@ -34,7 +32,6 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/home" element={<Home />} />
             <Route path="/verify-info" element={<VerifyInfo />} />
-            <Route path="/setup-2fa" element={<SetUpTwoFactor />} />
             <Route path="/" element={<ProfilePageOverview />} />
 
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -49,12 +46,12 @@ function App() {
 
             <Route path="*" element={<NotFound />}></Route>
             <Route path="/dashboard" element={<AdminDashBoard />}></Route>
-            {/* <Route path="/dashboard2" element={<AdminDashboardV2 />}></Route> */}
 
 
+            <Route path="/problemset" element={<ProblemListingHome/>}></Route>
 
 
-            <Route path="/problems/one" element={<ProblemsExecutor />}></Route>
+            <Route path="/problems/two-sum" element={<ProblemPlayground />}></Route>
           </Routes>
         </Router>
         {/* </Provider> */}

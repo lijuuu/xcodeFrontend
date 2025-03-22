@@ -59,7 +59,7 @@ function LoginForm({ className, ...props }: { className?: string } & React.HTMLA
     [twoFactorEnabled]
   );
 
-type LoginFormData = z.infer<typeof loginSchema>;
+  type LoginFormData = z.infer<typeof loginSchema>;
 
 
   const {
@@ -147,7 +147,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
             <h2 className="text-2xl text-center font-bold text-white font-coinbase-display">
               Login to your account
             </h2>
-            <p className="text-gray-400 text-center text-sm font-coinbase-sans">
+            <p className="text-gray-500 text-center text-sm font-coinbase-sans">
               Enter your email below to login to your account
             </p>
           </div>
@@ -174,12 +174,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
                   <Label htmlFor="password" className="text-sm text-white font-coinbase-sans">
                     Password
                   </Label>
-                  <a
-                    href="/forgot-password"
-                    className="ml-auto text-sm text-gray-400 font-coinbase-sans hover:text-[#3CE7B2] transition-colors duration-200"
-                  >
-                    Forgot password?
-                  </a>
+
                 </div>
                 <Input
                   id="password"
@@ -236,19 +231,26 @@ type LoginFormData = z.infer<typeof loginSchema>;
               </Button>
             </div>
 
-            <div className="mt-4 text-center text-sm text-gray-400 font-coinbase-sans">
-              Don't have an account?{" "}
+            <div className="mt-4 text-center text-sm text-gray-400 font-coinbase-sans flex ">
+              
               {loading ? (
                 <span>Loading...</span>
               ) : (
                 <button
                   type="button"
                   onClick={() => navigate("/signup")}
-                  className="font-medium underline underline-offset-4 hover:text-[#3CE7B2] transition-colors duration-200"
+                  className="font-sm  underline-offset-4 hover:text-[#3CE7B2] transition-colors duration-200"
                 >
-                  Sign up
+                  Don't have an account?{" "}
                 </button>
               )}
+
+              <a
+                href="/forgot-password"
+                className="ml-auto text-sm text-gray-400 font-coinbase-sans hover:text-[#3CE7B2] transition-colors duration-200"
+              >
+                Forgot password?
+              </a>
             </div>
           </div>
         </div>

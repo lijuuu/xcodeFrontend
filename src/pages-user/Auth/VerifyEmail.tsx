@@ -32,7 +32,7 @@ const VerifyEmail = () => {
   useEffect(() => {
     if (successMessage && !loading) {
       toast.success(successMessage, { duration: 2000 });
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => navigate("/login"), 2000);
     }
     if (error && !loading) {
       toast.error(error.message || "Verification failed. Please try again.", { duration: 3000 });
@@ -45,7 +45,7 @@ const VerifyEmail = () => {
         <h1 className="text-4xl font-bold text-white">No Verification Data Provided</h1>
         <p className="text-sm text-gray-400 mt-2">Please use a valid verification link.</p>
         <button
-          onClick={() => navigate(ROUTES.LOGIN)}
+          onClick={() => navigate("/login")}
           className="px-4 py-2 mt-4 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
         >
           Go to Login
@@ -65,8 +65,8 @@ const VerifyEmail = () => {
           loading
             ? { y: [-10, 10], transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" } }
             : successMessage
-            ? { scale: [1, 1.2, 1], opacity: [1, 1, 0.8], transition: { duration: 1, ease: "easeOut" } }
-            : { rotate: [0, -10, 10, 0], transition: { duration: 0.5, ease: "easeInOut" } }
+              ? { scale: [1, 1.2, 1], opacity: [1, 1, 0.8], transition: { duration: 1, ease: "easeOut" } }
+              : { rotate: [0, -10, 10, 0], transition: { duration: 0.5, ease: "easeInOut" } }
         }
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -82,13 +82,13 @@ const VerifyEmail = () => {
         {loading
           ? `Please wait while we verify your email...`
           : error
-          ? "Something went wrong. Return to login to try again."
-          : `Your email is verified! Redirecting to your Login page...`}
+            ? "Something went wrong. Return to login to try again."
+            : `Your email is verified! Redirecting to your Login page...`}
       </p>
 
       {error && !loading && (
         <button
-          onClick={() => navigate(ROUTES.LOGIN)}
+          onClick={() => navigate("/login")}
           className="px-4 py-2 mt-4 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
           aria-label="Return to login"
         >

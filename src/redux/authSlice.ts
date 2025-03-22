@@ -366,7 +366,7 @@ const authSlice = createSlice({
           state.loading = false;
           state.successMessage = action.payload.payload.message;
           state.isAuthenticated = true;
-          saveState(state);
+          // saveState(state);
         }
       )
       .addCase(verifyEmail.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
