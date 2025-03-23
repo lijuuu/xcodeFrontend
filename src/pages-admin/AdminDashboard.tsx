@@ -2,12 +2,9 @@
 
 import React, { useRef, useEffect, useState, useCallback } from "react"
 import axios from "axios"
-import { z } from "zod"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import ProblemListView from "@/pages-admin/ProblemsList"
 import ApiResponseHistory from "@/pages-admin/ApiResponseHistory"
 import TestCasesView from "@/pages-admin/TestCases"
@@ -18,58 +15,8 @@ import ProblemDetailsView from "@/pages-admin/ProblemsDetails"
 import {
   Server,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 const BASE_URL = "http://localhost:7000/api/v1/problems"
-
-const predefinedTags = [
-  "Array",
-  "String",
-  "Dynamic Programming",
-  "Graph",
-  "Tree",
-  "Linked List",
-  "Stack",
-  "Queue",
-  "Heap",
-  "Backtracking",
-  "Greedy",
-  "Binary Search",
-  "Sorting",
-  "Recursion",
-  "Bit Manipulation",
-]
-
-// Schemas
-const problemSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  tags: z.array(z.string()).min(1, "At least one tag is required"),
-  difficulty: z.string().min(1, "Difficulty is required"),
-})
-
-const testCaseSchema = z.object({
-  input: z.string().min(1, "Input is required"),
-  expected: z.string().min(1, "Expected output is required"),
-})
-
-const bulkTestCaseSchema = z
-  .object({
-    run: z.array(z.object({ input: z.string(), expected: z.string() })).optional(),
-    submit: z.array(z.object({ input: z.string(), expected: z.string() })).optional(),
-  })
-  .refine((data) => (data.run && data.run.length > 0) || (data.submit && data.submit.length > 0), {
-    message: "At least one run or submit test case is required",
-  })
-
-const languageSchema = z.object({
-  language: z.string().min(1, "Language is required"),
-  placeholder: z.string().min(1, "Placeholder is required"),
-  code: z.string().min(1, "Validation code is required"),
-  template: z.string().min(1, "Template code is neccessary")
-})
-
-// type BulkTestCaseFormData = z.infer<typeof bulkTestCaseSchema>
 
 export interface Problem {
   problem_id: string;

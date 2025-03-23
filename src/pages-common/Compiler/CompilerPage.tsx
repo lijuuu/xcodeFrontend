@@ -14,7 +14,6 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Output from '@/pages-common/Compiler/components/Output';
 import CodeEditor from '@/pages-common/Compiler/components/CodeEditor';
 import FileSystem from '@/pages-common/Compiler/components/FileSystem';
-import NavHeader from "@/components/sub/NavHeader"
 
 import {
   ResizablePanel,
@@ -22,7 +21,7 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { SiJavascript, SiPython, SiGo, SiCplusplus } from 'react-icons/si';
-import { clear } from 'console';
+import { useNavigate } from 'react-router';
 
 interface File {
   id: string;
@@ -85,12 +84,12 @@ function OnlineCompilerPage() {
     output: isMobile ? 0 : 35
   });
 
-  // Update filesRef when files change
+  
   useEffect(() => {
     filesRef.current = files;
   }, [files]);
 
-  // Load file content when changing files
+  
   useEffect(() => {
     if (currentFile && currentFile !== previousFileRef.current) {
       const file = files.find((f: File) => f.id === currentFile);
@@ -119,7 +118,7 @@ function OnlineCompilerPage() {
       const newIsMobile = window.innerWidth < 768;
       setIsMobile(newIsMobile);
 
-      // Reset panel layout when switching between mobile and desktop
+      
       if (newIsMobile !== isMobile) {
         setPanelLayout({
           editor: newIsMobile ? (outputExpanded ? 0 : 100) : 65,
@@ -133,7 +132,7 @@ function OnlineCompilerPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, [isMobile, outputExpanded]);
 
-  // Function to download code
+  
   const handleDownloadCode = () => {
     const currentLang = languages.find(l => l.value === language);
     const extension = currentLang?.file || 'txt';
@@ -148,12 +147,12 @@ function OnlineCompilerPage() {
     document.body.appendChild(a);
     a.click();
 
-    // Cleanup
+    
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  // Toggle output panel on mobile
+  
   const toggleOutputPanel = () => {
     if (isMobile) {
       const newExpanded = !outputExpanded;
@@ -166,6 +165,7 @@ function OnlineCompilerPage() {
   };
 
   const [showToolTip, setShowToolTip] = useState(false);
+  const navigate = useNavigate()
 
 
   return (
@@ -173,24 +173,24 @@ function OnlineCompilerPage() {
     <SidebarProvider>
       <FileSystem />
       <div className="bg-background transition-colors duration-300 h-screen w-full flex flex-col overflow-hidden">
-        {/* <NavHeader className="" /> */}
+        {}
 
-        {/* Header - Enhanced styling */}
+        {}
         <div className="flex items-center justify-between border-b border-border/50 p-2 h-12 bg-muted/20">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="h-8 w-8 p-0 hover:bg-muted rounded-md">
               <Menu className="h-4 w-4" />
             </SidebarTrigger>
-            {/* Text with tooltip */}
+            {}
             <div
               className="relative flex items-center cursor-pointer"
               onMouseEnter={() => setShowToolTip(true)}
               onMouseLeave={() => setShowToolTip(false)}
-              onClick={() => (window.location.href = "/")}
+              onClick={() => navigate("/")}
             >
               <span className="font-medium text-foreground relative">xcode</span>
 
-              {/* Tooltip (now appears below) */}
+              {}
               {showToolTip && (
                 <div className="absolute w-40 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md shadow-md mt-1">
                   Want to go back to home? Click here

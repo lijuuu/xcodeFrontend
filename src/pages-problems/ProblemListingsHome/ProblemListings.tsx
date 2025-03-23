@@ -9,10 +9,8 @@ import { Filter, Search, Loader2, FileCode } from "lucide-react";
 import { useNavigate } from "react-router";
 import NavHeader from "@/components/sub/NavHeader";
 
-// API base URL
 const BASE_URL = "http://localhost:7000/api/v1/problems";
 
-// Problem interface
 interface Problem {
   problem_id: string;
   title: string;
@@ -21,10 +19,8 @@ interface Problem {
   difficulty: string;
 }
 
-// Props for the component (minimal since it's standalone)
 interface ProblemsHomeProps { }
 
-// Difficulty mapping
 const mapDifficulty = (difficulty: string): string => {
   const difficultyMap: Record<string, string> = {
     "1": "Easy",
@@ -37,7 +33,6 @@ const mapDifficulty = (difficulty: string): string => {
   return difficultyMap[difficulty] || difficulty;
 };
 
-// Difficulty color mapping
 const getDifficultyColor = (difficulty: string) => {
   switch (difficulty) {
     case "E":
@@ -61,7 +56,6 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch problems from backend
   const fetchProblems = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -71,8 +65,8 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
       if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
       setProblems(problemList);
       setFilteredProblems(problemList);
-    } catch (err: any) {
-      setError(err.message || "Failed to load problems");
+    } catch (err) {
+      setError((err as Error).message || "Failed to load problems");
       setProblems([]);
       setFilteredProblems([]);
     } finally {
@@ -80,16 +74,14 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
     }
   }, []);
 
-  // Fetch problems on mount
   useEffect(() => {
     fetchProblems();
   }, [fetchProblems]);
 
-  // Debounce filter updates
   const debounce = useCallback(
-    (func: (...args: any[]) => void, wait: number) => {
+    (func: (...args: string[]) => void, wait: number) => {
       let timeout: NodeJS.Timeout;
-      return (...args: any[]) => {
+      return (...args: string[]) => {
         clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), wait);
       };
@@ -121,7 +113,6 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
     if (tagInputRef.current) tagInputRef.current.value = "";
   };
 
-  // Apply filters
   const applyFilters = useCallback(() => {
     let filtered = [...problems];
     if (filters.search) {
@@ -141,21 +132,17 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
     applyFilters();
   }, [applyFilters]);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const navigateProblemsExecutor = () => {
-    navigate("/home")
-  }
+  const navigateProblemsExecutor = (problem_id: string) => {
+    navigate(`/problems?problem_id=${problem_id}`);
+  };
 
   return (
     <>
       <NavHeader name={"Problems"} logout={true} />
-      <div className="flex-1 overflow-auto p-6 bg-white dark:bg-[#0F0F12]">
+      <div className="flex-1 overflow-auto p-6 bg-white dark:bg-[#121212] min-h-screen">
         <div className="space-y-6">
-          {/* Header */}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Problems</h1>
-
-          {/* Filters */}
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
@@ -243,24 +230,20 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
             )}
           </div>
 
-          {/* Loading State */}
           {loading && (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-zinc-900 dark:text-zinc-100" />
             </div>
           )}
 
-          {/* Problems Count */}
           {!loading && (
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Problems</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {filteredProblems.length} {filteredProblems.length === 1 ? "problem" : "problems"} found
               </p>
             </div>
           )}
 
-          {/* No Problems Found */}
           {filteredProblems.length === 0 && !loading && (
             <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
               <CardContent className="p-8 flex flex-col items-center justify-center text-center">
@@ -271,14 +254,13 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
             </Card>
           )}
 
-          {/* Problems Grid */}
           {!loading && filteredProblems.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredProblems.map((problem) => (
                 <Card
                   key={problem.problem_id}
-                  className="bg-white dark:bg-[#151515] hover:dark:bg-[#181717] border-gray-200 dark:border-[#373738] hover:shadow-lg hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 transition-all duration-200"
-                  onClick={navigateProblemsExecutor}
+                  className="bg-white dark:bg-[#151515] hover:dark:bg-[#181717] border-gray-200 dark:border-[#373738] hover:shadow-lg hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 transition-all duration-200 cursor-pointer"
+                  onClick={() => navigateProblemsExecutor(problem.problem_id)}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -308,7 +290,6 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
                         </Badge>
                       )}
                     </div>
-                    {/* <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{problem.description}</p> */}
                   </CardContent>
                 </Card>
               ))}

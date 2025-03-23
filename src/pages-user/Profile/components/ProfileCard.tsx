@@ -211,6 +211,9 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
             <BadgesEarned />
           </div>
 
+
+          {/*Recent Problems*/}
+
           <div className="h-auto md:h-[400px] w-full bg-[#1D1D1D] rounded-xl shadow-lg p-6 overflow-y-auto border border-gray-800 hover:border-gray-700 transition-all duration-300">
             <h3 className="text-xl font-semibold text-white mb-4 font-coinbase-display">Recent Problems</h3>
             <div className="space-y-3">
@@ -225,13 +228,13 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
                       <span className={`text-xs px-2 py-1 rounded-full font-medium font-coinbase-sans ${submission.difficulty === "Easy"
                         ? "bg-emerald-900 text-emerald-400"
                         : submission.difficulty === "Medium"
-                          ? "bg-blue-900 text-blue-400"
+                          ? "bg-yellow-900 text-yellow-400"
                           : "bg-red-900 text-red-400"}`
                       }>
                         {submission.difficulty}
                       </span>
                       {submission.category.map((category) => (
-                        <span key={category} className="text-xs text-gray-400 font-coinbase-sans bg-gray-800 px-2 py-1 rounded-md">
+                        <span key={category} className="text-xs text-violet-400 font-coinbase-sans bg-gray-800 px-2 py-1 rounded-md">
                           {category}
                         </span>
                       ))}

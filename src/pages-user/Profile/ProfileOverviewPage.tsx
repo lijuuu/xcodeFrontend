@@ -25,12 +25,11 @@ const ProfilePageOverview = () => {
   }, []);
 
   console.log("userProfile ", userProfile);
-  const [loading, setLoading] = useState(false);
   return (
     <div className='min-h-screen w-full bg-night-black'>
 
       <NavHeader logout={true}  name="Profile" />
-      {loading ? <div>Loading...</div> : <ProfileCard user={userProfile} />}
+      <ProfileCard user={userProfile} />
     </div>
   )
 }

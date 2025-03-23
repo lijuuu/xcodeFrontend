@@ -18,11 +18,12 @@ import SettingsPage from "@/pages-user/SettingsDashboard/SettingsPage";
 import AdminDashBoard from "./pages-admin/AdminDashboard";
 import ProblemPlayground from "@/pages-problems/ProblemPlayground/ProblemPlayground"
 import ProblemListingHome from "@/pages-problems/ProblemListingsHome/ProblemListings"
-import "./App.css"
+import { NavHeaderProvider } from "./context/NavHeaderContext";
 
 function App() {
   return (
     <>
+      <NavHeaderProvider>
       <PersistGate loading={null} persistor={persistor}>
         <Router>
           <Routes>
@@ -51,11 +52,11 @@ function App() {
             <Route path="/problemset" element={<ProblemListingHome/>}></Route>
 
 
-            <Route path="/problems/two-sum" element={<ProblemPlayground />}></Route>
+            <Route path="/problems/" element={<ProblemPlayground />}></Route>
           </Routes>
         </Router>
-        {/* </Provider> */}
       </PersistGate>
+      </NavHeaderProvider>
     </>
   );
 }

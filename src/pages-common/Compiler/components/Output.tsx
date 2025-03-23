@@ -10,15 +10,7 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import JSONView from '@uiw/react-json-view';
-import { lightTheme } from '@uiw/react-json-view/light';
-import { darkTheme } from '@uiw/react-json-view/dark';
 import { nordTheme } from '@uiw/react-json-view/nord';
-import { githubLightTheme } from '@uiw/react-json-view/githubLight';
-import { githubDarkTheme } from '@uiw/react-json-view/githubDark';
-import { vscodeTheme } from '@uiw/react-json-view/vscode';
-import { gruvboxTheme } from '@uiw/react-json-view/gruvbox';
-import { monokaiTheme } from '@uiw/react-json-view/monokai';
-import { basicTheme } from '@uiw/react-json-view/basic';
 
 interface CompilerResult {
   success?: boolean;
@@ -102,7 +94,7 @@ function Output({ className }: OutputProps) {
       const data = await response.json();
       setHints(
         data.candidates?.[0]?.content?.parts?.[0]?.text ||
-          'Could not generate hints at this time. Please try again later.'
+        'Could not generate hints at this time. Please try again later.'
       );
     } catch (error) {
       setHints('Error fetching hints. Please check your API key and try again.');
