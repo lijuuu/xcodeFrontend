@@ -19,7 +19,7 @@ const generateHeatmapData = () => {
 const UserActivityCard = () => {
   const heatmapData = generateHeatmapData();
   // Use turquoise gradient from reference image
-  const activityColors = ["#182422", "#164F45", "#1D7D6A", "#1D7D6A", "#3CE7B2"];
+  const activityColors = ["#1A3A2A", "#2B6B4A", "#3C9C6A", "#4DCD8A", "#5EFFAA"];
 
   return (
     <div className="bg-[#1D1D1D] p-6 rounded-xl shadow-lg border border-gray-800 hover:border-gray-700 transition-all duration-300">

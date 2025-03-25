@@ -69,8 +69,8 @@ const NavHeader = ({ pages = defaultPages, name, logout, className }: {
       <header className="flex justify-between items-center px-4 py-2 bg-[#121212] text-white w-full relative z-10 ">
         {/* Logo */}
         <div className="text-xl font-bold font-coinbase-display hover:text-[#3CE7B2] hover:cursor-crosshair transition-colors duration-200">
-          xcode{" "}
-          <span className="text-gray-400 text-[8px] font-coinbase-sans">beta</span>
+          zenx{" "}
+          <span className="text-gray-400 text-[8px] font-coinbase-sans">battle</span>
         </div>
 
         {/* Hamburger Menu for Mobile */}

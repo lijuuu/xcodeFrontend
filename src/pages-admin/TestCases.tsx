@@ -10,33 +10,76 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, Loader2, Trash2, ListChecks, Copy, AlertCircle, Check } from "lucide-react";
+import { ChevronLeft, Loader2, Trash2, ListChecks, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
-import { Problem } from "@/pages-admin/AdminDashboard"
 import { Label } from "@/components/ui/label";
 
+// Schema for single test case
 const testCaseSchema = z.object({
-  input: z.string().min(1, "Input is required"),
-  expected: z.string().min(1, "Expected output is required"),
+  input: z.string().min(1, "Input is required").refine(
+    (val) => {
+      try {
+        JSON.parse(val);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    "Input must be valid JSON (e.g., { \"nums\": [2,7,11,15], \"target\": 9 })"
+  ),
+  expected: z.string().min(1, "Expected output is required").refine(
+    (val) => {
+      try {
+        const parsed = JSON.parse(val);
+        return Array.isArray(parsed) && parsed.length === 2 && parsed.every(num => Number.isInteger(num));
+      } catch {
+        return false;
+      }
+    },
+    "Expected must be a JSON array of two integers (e.g., [0,1])"
+  ),
 });
+
+// Schema for bulk upload
 const bulkTestCaseSchema = z.object({
-  bulkJson: z.string().min(1, "JSON is required")
+  bulkJson: z.string().min(1, "JSON is required").refine(
+    (val) => {
+      try {
+        const parsed = JSON.parse(val);
+        return (
+          parsed.run && Array.isArray(parsed.run) &&
+          parsed.submit && Array.isArray(parsed.submit) &&
+          parsed.run.every((tc: any) => tc.input && tc.expected) &&
+          parsed.submit.every((tc: any) => tc.input && tc.expected)
+        );
+      } catch {
+        return false;
+      }
+    },
+    "Must be valid JSON with 'run' and 'submit' arrays containing 'input' and 'expected'"
+  ),
 });
 
-
-
-type TestCaseFormData = z.infer<typeof testCaseSchema>
+type TestCaseFormData = z.infer<typeof testCaseSchema>;
 
 interface TestCasesViewProps {
-  selectedProblem: Problem
-  setError: any
-  handleApiCall: any
-  setView: any
-  loading: boolean
-
+  selectedProblem: Problem;
+  setError: any;
+  handleApiCall: any;
+  setView: any;
+  loading: boolean;
 }
 
-// Test Cases View
+// Example problem type (adjust based on your actual Problem type)
+interface Problem {
+  problem_id: string;
+  title: string;
+  testcases: {
+    run: Array<{ id?: string; testcase_id?: string; input: string; expected: string }>;
+    submit: Array<{ id?: string; testcase_id?: string; input: string; expected: string }>;
+  };
+}
+
 const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError, handleApiCall, setView, loading }) => {
   const {
     control: runControl,
@@ -47,7 +90,8 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
     resolver: zodResolver(testCaseSchema),
     defaultValues: { input: "", expected: "" },
     mode: "onChange",
-  })
+  });
+
   const {
     control: submitControl,
     handleSubmit: handleSubmitSubmit,
@@ -57,7 +101,8 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
     resolver: zodResolver(testCaseSchema),
     defaultValues: { input: "", expected: "" },
     mode: "onChange",
-  })
+  });
+
   const {
     control: bulkControl,
     handleSubmit: handleSubmitBulk,
@@ -65,44 +110,45 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
     reset: resetBulk,
     formState: { errors: errorsBulk },
   } = useForm<{ bulkJson: string }>({
-    resolver: zodResolver(
-      z.object({
-        bulkJson: z.string().min(1, "JSON is required")}),),
+    resolver: zodResolver(bulkTestCaseSchema),
     defaultValues: { bulkJson: "" },
     mode: "onChange",
-  })
-  const [selectedTestCases, setSelectedTestCases] = useState<Set<string>>(new Set())
-  const [activeTab, setActiveTab] = useState("existing")
+  });
+
+  const [selectedTestCases, setSelectedTestCases] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState("existing");
 
   const onAddRun = async (data: TestCaseFormData) => {
-    if (!selectedProblem) return setError("Please select or create a problem first.")
+    if (!selectedProblem) return setError("Please select or create a problem first.");
     await handleApiCall("post", "/testcases", {
       problem_id: selectedProblem.problem_id,
       testcases: { run: [{ input: data.input, expected: data.expected }], submit: [] },
-    })
-    resetRun()
-    setActiveTab("existing")
-  }
+    });
+    resetRun();
+    setActiveTab("existing");
+    toast.success("Run test case added successfully!");
+  };
 
   const onAddSubmit = async (data: TestCaseFormData) => {
-    if (!selectedProblem) return setError("Please select or create a problem first.")
+    if (!selectedProblem) return setError("Please select or create a problem first.");
     await handleApiCall("post", "/testcases", {
       problem_id: selectedProblem.problem_id,
       testcases: { run: [], submit: [{ input: data.input, expected: data.expected }] },
-    })
-    resetSubmit()
-    setActiveTab("existing")
-  }
+    });
+    resetSubmit();
+    setActiveTab("existing");
+    toast.success("Submit test case added successfully!");
+  };
 
   const onRemove = async (testcaseId: string, isRun: boolean) => {
-    if (!selectedProblem || !window.confirm("Are you sure you want to delete this test case?")) return
+    if (!selectedProblem || !window.confirm("Are you sure you want to delete this test case?")) return;
     await handleApiCall("delete", "/testcases/single", {
       problem_id: selectedProblem.problem_id,
       testcase_id: testcaseId,
       is_run_testcase: isRun,
-    })
-  }
-
+    });
+    toast.success("Test case deleted successfully!");
+  };
 
   const onBulkDelete = async () => {
     if (
@@ -125,48 +171,99 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
 
     await Promise.all(promises);
     setSelectedTestCases(new Set());
+    toast.success(`Deleted ${selectedTestCases.size} test cases successfully!`);
   };
 
-
   const onBulkUpload = async (data: { bulkJson: string }) => {
-    if (!selectedProblem) return setError("Please select or create a problem first.")
-    const parsedJson = JSON.parse(data.bulkJson)
+    if (!selectedProblem) return setError("Please select or create a problem first.");
+    const parsedJson = JSON.parse(data.bulkJson);
     await handleApiCall("post", "/testcases", {
       problem_id: selectedProblem.problem_id,
       testcases: parsedJson,
-    })
-    resetBulk()
-    setActiveTab("existing")
-  }
+    });
+    resetBulk();
+    setActiveTab("existing");
+    toast.success("Bulk test cases uploaded successfully!");
+  };
 
   const toggleTestCaseSelection = (testcaseId: string) => {
-    const newSelected = new Set(selectedTestCases)
-    if (newSelected.has(testcaseId)) newSelected.delete(testcaseId)
-    else newSelected.add(testcaseId)
-    setSelectedTestCases(newSelected)
-  }
+    const newSelected = new Set(selectedTestCases);
+    if (newSelected.has(testcaseId)) newSelected.delete(testcaseId);
+    else newSelected.add(testcaseId);
+    setSelectedTestCases(newSelected);
+  };
 
-  const exampleJson = `{"run": [{"input": "1 2", "expected": "3"}], "submit": [{"input": "5 6", "expected": "11"}]}`
+  const exampleJson = `{
+  "run": [
+    { "input": "{ \\"nums\\": [2,7,11,15], \\"target\\": 9 }", "expected": "[0,1]" },
+    { "input": "{ \\"nums\\": [3,2,4], \\"target\\": 6 }", "expected": "[1,2]" },
+    { "input": "{ \\"nums\\": [1,5,3,7], \\"target\\": 8 }", "expected": "[0,3]" },
+    { "input": "{ \\"nums\\": [-1,-2,-3,-4,-5], \\"target\\": -8 }", "expected": "[2,4]" },
+    { "input": "{ \\"nums\\": [100,200,300,400], \\"target\\": 500 }", "expected": "[0,3]" }
+  ],
+  "submit": [
+    { "input": "{ \\"nums\\": [1,2,3,4,5], \\"target\\": 9 }", "expected": "[3,4]" },
+    { "input": "{ \\"nums\\": [0,1,2,3,4], \\"target\\": 3 }", "expected": "[0,3]" },
+    { "input": "{ \\"nums\\": [10,20,30,40,50], \\"target\\": 70 }", "expected": "[2,4]" },
+    { "input": "{ \\"nums\\": [5,15,25,35], \\"target\\": 40 }", "expected": "[1,2]" },
+    { "input": "{ \\"nums\\": [-10,0,10,20], \\"target\\": 10 }", "expected": "[0,2]" }
+  ]
+}`;
 
   const copyExampleJson = () => {
-    navigator.clipboard.writeText(exampleJson)
-    toast.success("Example JSON copied to clipboard!", { duration: 3000 })
-  }
+    navigator.clipboard.writeText(exampleJson);
+    toast.success("Example JSON copied to clipboard!", { duration: 3000 });
+  };
+
+  // Example problem data based on your input
+  const exampleProblem: Problem = {
+    problem_id: "67d96452d3fe6af39801337b",
+    title: "Two Sum",
+    testcases: {
+      run: [
+        
+      ],
+      submit: [],
+    },
+  };
+
+  // Example success message
+  const successMessage = "{\n  \"totalTestCases\": 2,\n  \"passedTestCases\": 2,\n  \"failedTestCases\": 0\n}";
 
   return (
-    <div>
+    <div className="p-4">
       <div className="mb-6 flex items-center gap-2">
         <Button
           variant="outline"
           onClick={() => setView("list")}
-          className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
-        >
+          className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]">
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Test Cases: {selectedProblem?.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Test Cases: {selectedProblem?.title || exampleProblem.title}
+        </h1>
       </div>
 
+      {/* Display Success Message */}
+      {/* {successMessage && (
+        <Card className="mb-6 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+          <CardHeader>
+            <CardTitle className="text-green-700 dark:text-green-300 flex items-center">
+              <Check className="h-5 w-5 mr-2" />
+              Test Case Execution Result
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-green-800 dark:text-green-200 whitespace-pre-wrap">
+              {successMessage}
+            </pre>
+            <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+              Problem ID: {selectedProblem?.problem_id || exampleProblem.problem_id} | Language: go | Run Test Cases: true
+            </p>
+          </CardContent>
+        </Card>
+      )} */}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid grid-cols-3 w-full max-w-md bg-gray-100 dark:bg-[#1F1F23] border-gray-200 dark:border-[#1F1F23]">
@@ -204,7 +301,6 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                   variant="destructive"
                   size="sm"
                   onClick={onBulkDelete}
-                  // disabled={loading}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -226,7 +322,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedProblem?.testcases?.run?.map((tc: any, i: number) => (
+                      {(selectedProblem?.testcases?.run || exampleProblem.testcases.run).map((tc: any, i: number) => (
                         <tr
                           key={i}
                           className="border-b border-gray-200 dark:border-[#1F1F23] hover:bg-gray-50 dark:hover:bg-[#1F1F23]/50 transition-colors"
@@ -243,10 +339,10 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                             </Badge>
                           </td>
                           <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
-                            [ {tc.input.replace(" ", ", ")} ]
+                            {tc.input}
                           </td>
                           <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
-                            [ {tc.expected.replace(" ", ", ")} ]
+                            {tc.expected}
                           </td>
                           <td className="p-2">
                             <Button
@@ -261,7 +357,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                           </td>
                         </tr>
                       ))}
-                      {selectedProblem?.testcases?.submit?.map((tc: any, i: number) => (
+                      {(selectedProblem?.testcases?.submit || exampleProblem.testcases.submit).map((tc: any, i: number) => (
                         <tr
                           key={i}
                           className="border-b border-gray-200 dark:border-[#1F1F23] hover:bg-gray-50 dark:hover:bg-[#1F1F23]/50 transition-colors"
@@ -280,10 +376,10 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                             </Badge>
                           </td>
                           <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
-                            [ {tc.input.replace(" ", ", ")} ]
+                            {tc.input}
                           </td>
                           <td className="p-2 truncate max-w-xs text-gray-900 dark:text-gray-200">
-                            [ {tc.expected.replace(" ", ", ")} ]
+                            {tc.expected}
                           </td>
                           <td className="p-2">
                             <Button
@@ -300,19 +396,20 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                       ))}
                     </tbody>
                   </table>
-                  {!selectedProblem?.testcases?.run?.length && !selectedProblem?.testcases?.submit?.length && (
-                    <div className="py-8 text-center">
-                      <ListChecks className="h-10 w-10 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                      <p className="text-gray-600 dark:text-gray-400">No test cases added yet.</p>
-                      <Button
-                        variant="outline"
-                        className="mt-4 border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
-                        onClick={() => setActiveTab("add")}
-                      >
-                        Add Test Case
-                      </Button>
-                    </div>
-                  )}
+                  {!(selectedProblem?.testcases?.run?.length || exampleProblem.testcases.run.length) &&
+                    !(selectedProblem?.testcases?.submit?.length || exampleProblem.testcases.submit.length) && (
+                      <div className="py-8 text-center">
+                        <ListChecks className="h-10 w-10 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                        <p className="text-gray-600 dark:text-gray-400">No test cases added yet.</p>
+                        <Button
+                          variant="outline"
+                          className="mt-4 border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]"
+                          onClick={() => setActiveTab("add")}
+                        >
+                          Add Test Case
+                        </Button>
+                      </div>
+                    )}
                 </div>
               </ScrollArea>
             </CardContent>
@@ -325,14 +422,14 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-gray-100">Add Run Test Case</CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                  For development testing
+                  For final submission (e.g., {`{ "nums": [1,2,3,4,5], "target": 9 }`})
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmitRun(onAddRun)} className="space-y-4">
                   <div>
                     <Label htmlFor="run-input" className="text-gray-700 dark:text-gray-300">
-                      Input
+                      Input (JSON)
                     </Label>
                     <Controller
                       name="input"
@@ -341,8 +438,8 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                         <Input
                           id="run-input"
                           {...field}
-                          placeholder="Enter input..."
-                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          placeholder='{ "nums": [2,7,11,15], "target": 9 }'
+                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100 font-mono"
                         />
                       )}
                     />
@@ -352,7 +449,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                   </div>
                   <div>
                     <Label htmlFor="run-expected" className="text-gray-700 dark:text-gray-300">
-                      Expected Output
+                      Expected Output (JSON Array)
                     </Label>
                     <Controller
                       name="expected"
@@ -361,8 +458,8 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                         <Input
                           id="run-expected"
                           {...field}
-                          placeholder="Enter expected output..."
-                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          placeholder="[0,1]"
+                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100 font-mono"
                         />
                       )}
                     />
@@ -385,13 +482,15 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
             <Card className="bg-white dark:bg-[#0F0F12] border-gray-200 dark:border-[#1F1F23]">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-gray-100">Add Submit Test Case</CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400">For final submission</CardDescription>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  For final submission (e.g., {`{ "nums": [1,2,3,4,5], "target": 9 }`})
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmitSubmit(onAddSubmit)} className="space-y-4">
                   <div>
                     <Label htmlFor="submit-input" className="text-gray-700 dark:text-gray-300">
-                      Input
+                      Input (JSON)
                     </Label>
                     <Controller
                       name="input"
@@ -400,8 +499,8 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                         <Input
                           id="submit-input"
                           {...field}
-                          placeholder="Enter input..."
-                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          placeholder='{ "nums": [1,2,3,4,5], "target": 9 }'
+                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100 font-mono"
                         />
                       )}
                     />
@@ -411,7 +510,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                   </div>
                   <div>
                     <Label htmlFor="submit-expected" className="text-gray-700 dark:text-gray-300">
-                      Expected Output
+                      Expected Output (JSON Array)
                     </Label>
                     <Controller
                       name="expected"
@@ -420,8 +519,8 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
                         <Input
                           id="submit-expected"
                           {...field}
-                          placeholder="Enter expected output..."
-                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100"
+                          placeholder="[3,4]"
+                          className="mt-1 border-gray-200 dark:border-[#1F1F23] dark:bg-[#0F0F12] text-gray-900 dark:text-gray-100 font-mono"
                         />
                       )}
                     />
@@ -508,7 +607,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
 export default TestCasesView;

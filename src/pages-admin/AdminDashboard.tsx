@@ -209,7 +209,7 @@ export default function AdminDashboard() {
 
 
   return (
-    <div className="flex-1 overflow-auto p-6 bg-white dark:bg-[#0F0F12]">
+    <div className="flex-1 overflow-auto p-6 bg-white dark:bg-[#0F0F12] min-h-screen">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Admin Dashboard</h1>

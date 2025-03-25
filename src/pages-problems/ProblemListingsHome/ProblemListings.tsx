@@ -9,17 +9,22 @@ import { Filter, Search, Loader2, FileCode } from "lucide-react";
 import { useNavigate } from "react-router";
 import NavHeader from "@/components/sub/NavHeader";
 
-const BASE_URL = "http://localhost:7000/api/v1/problems";
-
+// Define the Problem interface based on ProblemMetadata
 interface Problem {
   problem_id: string;
   title: string;
   description: string;
   tags: string[];
   difficulty: string;
+  testcase_run: { run: { input: string; expected: string }[] };
+  supported_languages: string[];
+  validated: boolean;
+  placeholder_maps: { [key: string]: string };
 }
 
-interface ProblemsHomeProps { }
+interface ProblemsHomeProps {}
+
+const BASE_URL = "http://localhost:7000/api/v1/problems";
 
 const mapDifficulty = (difficulty: string): string => {
   const difficultyMap: Record<string, string> = {
@@ -60,11 +65,23 @@ const ProblemListingHome: React.FC<ProblemsHomeProps> = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${BASE_URL}/list`, { params: { page: 1, page_size: 100 } });
+      const res = await axios.get(`${BASE_URL}/metadata/list`, { params: { page: 1, page_size: 100 } });
+      console.log('Raw API response:', res.data); // Log for debugging
       const problemList = res.data.payload?.problems || [];
       if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
-      setProblems(problemList);
-      setFilteredProblems(problemList);
+      const mappedProblems: Problem[] = problemList.map((item: any) => ({
+        problem_id: item.problem_id || '',
+        title: item.title || 'Untitled',
+        description: item.description || '',
+        tags: item.tags || [],
+        difficulty: item.difficulty || '',
+        testcase_run: item.testcase_run || { run: [] },
+        supported_languages: item.supported_languages || [],
+        validated: item.validated || false,
+        placeholder_maps: item.placeholder_maps || {},
+      }));
+      setProblems(mappedProblems);
+      setFilteredProblems(mappedProblems);
     } catch (err) {
       setError((err as Error).message || "Failed to load problems");
       setProblems([]);

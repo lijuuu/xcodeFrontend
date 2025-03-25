@@ -146,7 +146,7 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
             {loading && <p className="text-sm text-gray-400 font-coinbase-sans">Uploading...</p>}
             {error && <p className="text-sm text-red-400 font-coinbase-sans">{error}</p>}
             <button
-              className="bg-[#3CE7B2] text-[#121212] w-full px-4 py-2 rounded-md text-sm font-medium font-coinbase-sans hover:bg-[#27A98B] transition-colors duration-200"
+              className="bg-[#3CE7B2] text-[#121212] w-full px-4 py-2 rounded-md text-sm font-medium font-coinbase-sans hover:bg-[#3CE7B2] transition-colors duration-200"
               onClick={() => navigate("/settings/edit-profile")}
             >
               Edit Profile
